@@ -83,3 +83,28 @@ Hãy tạo file migration create_invoices_table.sql trong đường dẫn `supab
 3. Sau khi viết xong file SQL, hãy tóm tắt lại cấu trúc file và cung cấp duy nhất 1 lệnh CLI chính xác để tôi chạy trên Terminal nhằm đẩy (push) toàn bộ file migration này lên database Supabase Production.
 
 ======================
+DIRECTIVE: Tiến hành triển khai PHASE 4: Hoàn thiện Dashboard quản lý lịch sử hóa đơn, Cấu hình Thẻ Meta SEO và Tối ưu hóa Nhúng Thẻ Google AdSense cho SnapBill theo đúng @SnapBill_Specification.md và @.cursorules.
+
+Hãy triển khai mã nguồn chi tiết, không dùng placeholder hay mã giả:
+
+### BƯỚC 1: XÂY DỰNG TRANG LỊCH SỬ HÓA ĐƠN ("My Invoices" Dashboard)
+- Tạo một component mới `@/components/invoice/InvoiceDashboard.tsx` (hoặc tích hợp nút chuyển đổi View trên giao diện chính khi người dùng đã đăng nhập).
+- Sử dụng useEffect để truy vấn (Select) danh sách hóa đơn từ bảng `invoices` của Supabase dựa trên `user.id` hiện tại.
+- Hiển thị danh sách dưới dạng Data Table sạch sẽ với các cột: Số hóa đơn, Tên khách hàng, Tổng tiền (sử dụng hàm formatMoney trong @/lib/money.ts), Ngày tạo, Trạng thái (Draft, Sent, Paid, Overdue hiển thị dưới dạng Badge màu sắc của Tailwind).
+- **Hành động trên mỗi dòng:**
+  - Nút *Edit*: Khi nhấn vào, lấy toàn bộ object hóa đơn đó nạp ngược lại vào Core State của InvoiceContext để hiển thị lên Form chỉnh sửa.
+  - Nút *Delete*: Trigger lệnh xóa dòng đó trên Supabase và cập nhật lại state của danh sách.
+  - Bộ chọn *Status*: Cho phép thay đổi nhanh trạng thái hóa đơn (ví dụ sang 'Paid') và tự động ghi đè (Update) lên DB ngay lập tức.
+
+### BƯỚC 2: CẤU HÌNH SEO METADATA TOÀN TRANG
+- Tại file `@/app/layout.tsx` hoặc `@/app/page.tsx`, định nghĩa object `metadata` chuẩn của Next.js 14 App Router để phục vụ thu thập dữ liệu (SEO Indexing):
+  - `title`: "SnapBill - Free Professional Invoice Generator"
+  - `description`: "Generate, download, and manage professional PDF invoices instantly for free. Perfect for freelancers and small businesses."
+  - Cấu hình thêm các thẻ OpenGraph (`og:title`, `og:description`) để hiển thị đẹp mắt khi chia sẻ link lên Facebook/X.
+
+### BƯỚC 3: HOÀN THIỆN COMPONENT BẬT ADSENSE ĐỘNG (AdSlot.tsx)
+- Hoàn thiện mã nguồn cho component `@/components/invoice/AdSlot.tsx` để nhúng mã Google AdSense.
+- Component này nhận vào thuộc tính `slotId` và hiển thị một thẻ `<ins class="adsbygoogle" ...>` được bao bọc bởi một khung div có kích thước cố định (`min-h-[90px]` hoặc `min-h-[600px]`) để chống hiện tượng giật giật màn hình (CLS) khi quảng cáo load chậm.
+- Nhúng thẻ `<Script>` của Next.js trong `layout.tsx` để tải thư viện `adsbygoogle.js` một cách bất đồng bộ (async), chuẩn bị sẵn sàng cho việc phân phối quảng cáo khi deploy lên production.
+
+=================

@@ -118,33 +118,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // #region agent log
-    fetch(
-      "http://127.0.0.1:7705/ingest/505b2940-41b3-4650-8f34-74f787984c83",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "b76a0f",
-        },
-        body: JSON.stringify({
-          sessionId: "b76a0f",
-          hypothesisId: "H1-url-callback",
-          location: "AuthContext.tsx:oauthReturnParse",
-          message: "OAuth redirect carried error params",
-          data: {
-            rawCode: parsed.rawCode,
-            rawError: parsed.rawError,
-            mappedUnsupportedProviderHint:
-              parsed.message.includes("Google OAuth"),
-          },
-          timestamp: Date.now(),
-          runId: "post-fix",
-        }),
-      },
-    ).catch(() => {});
-    // #endregion
-
     setAuthErrorBanner(parsed.message);
 
     const url = new URL(window.location.href);
@@ -203,122 +176,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ? `${window.location.origin}${window.location.pathname}`
         : undefined;
 
-    let supabaseHost = "";
-    try {
-      const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      if (rawUrl) {
-        supabaseHost = new URL(rawUrl).host;
-      }
-    } catch {
-      supabaseHost = "invalid_url";
-    }
-
     const oauthProvider = "google" as const;
 
-    // #region agent log
-    fetch(
-      "http://127.0.0.1:7705/ingest/505b2940-41b3-4650-8f34-74f787984c83",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "b76a0f",
-        },
-        body: JSON.stringify({
-          sessionId: "b76a0f",
-          hypothesisId: "H2-H3-H4",
-          location: "AuthContext.tsx:signInWithGoogle",
-          message: "OAuth attempt start",
-          data: {
-            provider: oauthProvider,
-            redirectToPattern: redirectTo ? "origin+pathname" : "none",
-            path:
-              typeof window !== "undefined" ? window.location.pathname : "",
-            supabaseHost,
-          },
-          timestamp: Date.now(),
-          runId: "pre-fix",
-        }),
-      },
-    ).catch(() => {});
-    // #endregion
-
-    const { data, error } = await client.auth.signInWithOAuth({
+    const { error } = await client.auth.signInWithOAuth({
       provider: oauthProvider,
       options: redirectTo ? { redirectTo } : undefined,
     });
 
-    // #region agent log
-    fetch(
-      "http://127.0.0.1:7705/ingest/505b2940-41b3-4650-8f34-74f787984c83",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "b76a0f",
-        },
-        body: JSON.stringify({
-          sessionId: "b76a0f",
-          hypothesisId: "H1-H4",
-          location: "AuthContext.tsx:signInWithGoogle",
-          message: "OAuth attempt result",
-          data: {
-            hasAuthUrl: typeof data?.url === "string" && data.url.length > 0,
-            errorMessage: error?.message ?? null,
-            errorName: error?.name ?? null,
-            errorStatus:
-              typeof error === "object" &&
-              error !== null &&
-              "status" in error &&
-              typeof (error as { status?: unknown }).status === "number"
-                ? (error as { status: number }).status
-                : null,
-          },
-          timestamp: Date.now(),
-          runId: "post-fix-verify",
-        }),
-      },
-    ).catch(() => {});
-    // #endregion
-
     if (error) {
       console.warn("[SnapBill] signInWithOAuth error:", error.message);
       setAuthErrorBanner(error.message);
-      return;
     }
-
-    const authorizeUrlHost = (() => {
-      try {
-        return data?.url ? new URL(data.url).host : "";
-      } catch {
-        return "";
-      }
-    })();
-
-    // #region agent log
-    fetch(
-      "http://127.0.0.1:7705/ingest/505b2940-41b3-4650-8f34-74f787984c83",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "b76a0f",
-        },
-        body: JSON.stringify({
-          sessionId: "b76a0f",
-          hypothesisId: "H1-hint",
-          location: "AuthContext.tsx:signInWithGoogle",
-          message: "OAuth URL issued; user will navigate to authorize host",
-          data: {
-            authorizeUrlHost,
-            sameProjectAsClient: authorizeUrlHost === supabaseHost,
-          },
-          timestamp: Date.now(),
-          runId: "post-fix-verify",
-        }),
-      },
-    ).catch(() => {});
-    // #endregion
   }, [clearAuthErrorBanner]);
 
   const signOut = useCallback(async () => {

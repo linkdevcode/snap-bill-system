@@ -12,6 +12,13 @@ import {
 } from "react";
 
 import { useAuth } from "@/context/AuthContext";
+import {
+  type InvoiceDbRow,
+  parseClientData,
+  parseInvoiceStatus,
+  parseItemsJsonbToLineItems,
+  parseSenderData,
+} from "@/lib/invoice-db";
 import { lineTotalFromItem, roundCurrency } from "@/lib/money";
 import type {
   ClientData,
@@ -75,6 +82,8 @@ export interface InvoiceContextValue {
   addItem: () => void;
   updateItem: (id: string, patch: Partial<Omit<LineItem, "id">>) => void;
   deleteItem: (id: string) => void;
+  hydrateInvoiceFromRemoteRow: (row: InvoiceDbRow) => void;
+  resetInvoiceDraft: () => void;
 }
 
 const InvoiceContext = createContext<InvoiceContextValue | undefined>(
@@ -394,6 +403,29 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const hydrateInvoiceFromRemoteRow = useCallback((row: InvoiceDbRow) => {
+    const items = parseItemsJsonbToLineItems(row.items);
+    const safeItems = items.length > 0 ? items : [createEmptyLineItem()];
+
+    setBase({
+      id: row.id,
+      invoice_number: row.invoice_number,
+      status: parseInvoiceStatus(row.status),
+      issue_date: row.issue_date,
+      due_date: row.due_date,
+      sender_data: parseSenderData(row.sender_data),
+      client_data: parseClientData(row.client_data),
+      items: safeItems,
+      tax_rate: roundCurrency(Number(row.tax_rate ?? 0)),
+      discount_rate: roundCurrency(Number(row.discount_rate ?? 0)),
+      notes: row.notes ?? "",
+    });
+  }, []);
+
+  const resetInvoiceDraft = useCallback(() => {
+    setBase(createDefaultInvoice());
+  }, []);
+
   const value = useMemo<InvoiceContextValue>(
     () => ({
       invoice,
@@ -407,6 +439,8 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
       addItem,
       updateItem,
       deleteItem,
+      hydrateInvoiceFromRemoteRow,
+      resetInvoiceDraft,
     }),
     [
       invoice,
@@ -420,6 +454,8 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
       addItem,
       updateItem,
       deleteItem,
+      hydrateInvoiceFromRemoteRow,
+      resetInvoiceDraft,
     ],
   );
 
