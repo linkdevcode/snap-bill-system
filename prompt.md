@@ -108,3 +108,24 @@ Hãy triển khai mã nguồn chi tiết, không dùng placeholder hay mã giả
 - Nhúng thẻ `<Script>` của Next.js trong `layout.tsx` để tải thư viện `adsbygoogle.js` một cách bất đồng bộ (async), chuẩn bị sẵn sàng cho việc phân phối quảng cáo khi deploy lên production.
 
 =================
+DIRECTIVE: Tiến hành REFACTOR toàn bộ giao diện UI/UX cao cấp và bổ sung phương thức Đăng nhập bằng Email (Magic Link/OTP) cho SnapBill theo đúng @SnapBill_Specification.md và @.cursorules.
+
+Yêu cầu thực hiện chi tiết từng phần, không sử dụng code giả hay placeholder:
+
+### BƯỚC 1: NÂNG CẤP AUTH (Email Magic Link / OTP)
+- Cập nhật `@/components/auth/AuthToolbar.tsx` và `@/context/AuthContext.tsx`:
+  - Khi người dùng bấm "Sign In", thay vì chuyển hướng ngay sang Google, hãy hiển thị một Modal (hoặc Form nhỏ gọn tinh tế).
+  - Form này chứa 1 ô nhập Email chuẩn kèm 1 nút bấm: "Send Magic Link".
+  - Sử dụng hàm `supabase.auth.signInWithOtp({ email })` để gửi một liên kết đăng nhập bảo mật trực tiếp vào email của người dùng (Không cần bắt họ nhớ mật khẩu).
+  - Giữ lại nút "Continue with Google" ở phía dưới Form như một tùy chọn phụ.
+
+### BƯỚC 2: THAY ĐỔI TOÀN DIỆN UI/UX EDITOR VÀ SUMMARY SHEETS
+Hãy tinh chỉnh lại CSS Tailwind trong `InvoiceEditor.tsx`, `LineItemsTable.tsx` theo phong cách tối giản, hiện đại (Sleek Tech-Slate):
+- **Inputs:** Đổi tất cả ô nhập liệu thành border mảnh (`border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500`), cỡ chữ placeholder nhỏ hơn cỡ chữ label, tăng padding vừa phải. Nhãn field (labels) đổi thành chữ in nhỏ, màu xám nhẹ (`text-xs font-semibold uppercase tracking-wider text-slate-500`).
+- **Logo Uploader:** Thiết kế lại thành một vùng nét đứt nhỏ gọn mảnh mai ở góc, khi rê chuột vào có hiệu ứng đổi màu (`hover:bg-slate-50`).
+- **Khối Tổng Tiền (Total Box):** Định hình lại khu vực Subtotal, Tax, Discount thành một card riêng biệt. Dòng "Total Due" phải được phóng to font size, chữ đậm (`font-bold text-xl text-indigo-600` hoặc màu tương phản cao) để làm nổi bật con số cuối cùng.
+- **Callout Banner:** Banner màu vàng nhắc nhở khách vãng lai đăng ký tài khoản cần đổi thành một Alert Box bo góc mềm mại, có icon Lucide (ví dụ `Sparkles` hoặc `Info`), sử dụng màu nền dịu mắt (`bg-amber-50/60 border border-amber-100 text-amber-800`).
+
+### BƯỚC 3: LÀM ĐẸP BANNER QUẢNG CÁO GỢI Ý (Ad Places)
+- Cập nhật `@/components/invoice/AdSlot.tsx`: Khi chưa có cấu hình biến môi trường (`NEXT_PUBLIC_ADSENSE_CLIENT`), tuyệt đối không hiển thị dòng chữ text thô kệch.
+- Thay vào đó, hãy render một khung xám siêu nhẹ (`bg-slate-50/50 border border-dashed border-slate-200/60 rounded-xl`), bên trong hiển thị một icon Lucide nhỏ kèm dòng chữ mờ nhạt: "Sponsor Advertisement Area" (giữ đúng chiều cao `min-h-[90px]` và `min-h-[600px]` để chống CLS nhưng nhìn cực kỳ thuận mắt và sạch sẽ).

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { Megaphone } from "lucide-react";
 
 declare global {
   interface Window {
@@ -60,11 +61,18 @@ export function AdSlot({
   if (!adsClient || !trimmedSlot) {
     return (
       <div
-        className={`flex w-full items-center justify-center rounded-xl border border-dashed border-tech-slate-300 bg-tech-slate-50 px-3 text-center text-xs font-medium uppercase tracking-wide text-tech-slate-500 dark:border-tech-slate-600 dark:bg-tech-slate-900 dark:text-warm-cream-400 ${minHeightClass} ${className}`}
-        aria-hidden
+        className={`flex w-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-200/60 bg-slate-50/50 px-4 text-center dark:border-slate-600/50 dark:bg-slate-900/30 ${minHeightClass} ${className}`}
+        role="img"
+        aria-label="Sponsor advertisement area"
       >
-        Ad slot reserved ({layout}) · configure NEXT_PUBLIC_ADSENSE_CLIENT
-        +&nbsp;slot
+        <Megaphone
+          className="mb-2 h-4 w-4 text-slate-300 dark:text-slate-600"
+          strokeWidth={1.5}
+          aria-hidden
+        />
+        <p className="max-w-[12rem] text-[11px] font-medium tracking-wide text-slate-400/95 dark:text-slate-500">
+          Sponsor Advertisement Area
+        </p>
       </div>
     );
   }

@@ -2,7 +2,7 @@
 
 import type { DragEvent } from "react";
 import { useCallback, useRef, useState } from "react";
-import { CloudUpload, ImagePlus, X } from "lucide-react";
+import { CloudUpload, ImagePlus, Sparkles, X } from "lucide-react";
 
 import { LineItemsTable } from "@/components/invoice/LineItemsTable";
 import { useAuth } from "@/context/AuthContext";
@@ -11,6 +11,15 @@ import { formatMoney } from "@/lib/money";
 
 const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 const ACCEPTED_MIME_TYPES = new Set(["image/png", "image/jpeg"]);
+
+const fieldLabelClass =
+  "block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400";
+
+const fieldInputClass =
+  "mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-shadow placeholder:text-xs placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-50 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400";
+
+const sectionTitleClass =
+  "text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400";
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -129,9 +138,9 @@ export function InvoiceEditor() {
   }, [updateSenderData]);
 
   return (
-    <div className="rounded-xl border border-tech-slate-800/10 bg-white p-5 shadow-sm dark:border-warm-cream-200/10 dark:bg-tech-slate-900">
+    <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-700/80 dark:bg-slate-950">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <h2 className="text-lg font-semibold tracking-tight text-tech-slate-900 dark:text-warm-cream-50">
+        <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">
           Invoice details
         </h2>
 
@@ -176,9 +185,7 @@ export function InvoiceEditor() {
 
       <fieldset className="space-y-3">
         <legend className="sr-only">Sender</legend>
-        <p className="text-xs font-semibold uppercase tracking-wide text-tech-slate-600 dark:text-warm-cream-300">
-          Sender
-        </p>
+        <p className={sectionTitleClass}>Sender</p>
 
         <input
           ref={fileInputRef}
@@ -189,151 +196,162 @@ export function InvoiceEditor() {
           onChange={(e) => void onLogoInputChange(e.target.files)}
         />
 
-        <div
-          className={`rounded-xl border border-dashed px-4 py-5 outline-none transition-colors ${
-            isDraggingLogo
-              ? "border-tech-slate-900 bg-tech-slate-50 dark:border-warm-cream-100 dark:bg-tech-slate-800"
-              : "border-tech-slate-300 bg-tech-slate-50/60 hover:border-tech-slate-400 dark:border-tech-slate-600 dark:bg-tech-slate-950/40 dark:hover:border-tech-slate-500"
-          }`}
-          onDragEnter={(e) => {
-            e.preventDefault();
-            setIsDraggingLogo(true);
-          }}
-          onDragOver={onLogoDragOver}
-          onDragLeave={onLogoDragLeave}
-          onDrop={onLogoDrop}
-        >
-          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <span className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-tech-slate-900 text-white dark:bg-warm-cream-100 dark:text-tech-slate-950">
-                <ImagePlus className="h-5 w-5" aria-hidden />
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-tech-slate-900 dark:text-warm-cream-50">
-                  Company logo
-                </p>
-                <p className="mt-1 text-xs leading-snug text-tech-slate-600 dark:text-warm-cream-300">
-                  Drag & drop a PNG or JPG here, or click to browse. Stored as
-                  Base64 on-device for instant preview.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex w-full shrink-0 flex-col items-stretch gap-2 sm:w-auto sm:items-end">
-              <button
-                type="button"
-                className="rounded-lg bg-tech-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-tech-slate-800 dark:bg-warm-cream-100 dark:text-tech-slate-950 dark:hover:bg-warm-cream-200"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                Choose image
-              </button>
-
-              {invoice.sender_data.logo_url ? (
+        <div className="flex flex-col gap-4 sm:flex-row-reverse sm:items-start sm:gap-4">
+          <div
+            className={`relative flex w-full shrink-0 flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 px-2 py-3 outline-none transition-colors hover:bg-slate-50 sm:w-[100px] dark:border-slate-600 dark:hover:bg-slate-800/40 ${
+              isDraggingLogo
+                ? "border-indigo-400 bg-indigo-50/50 dark:border-indigo-500 dark:bg-indigo-950/30"
+                : ""
+            }`}
+            onDragEnter={(e) => {
+              e.preventDefault();
+              setIsDraggingLogo(true);
+            }}
+            onDragOver={onLogoDragOver}
+            onDragLeave={onLogoDragLeave}
+            onDrop={onLogoDrop}
+          >
+            {invoice.sender_data.logo_url ? (
+              <div className="relative flex w-full flex-col items-center gap-1.5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={invoice.sender_data.logo_url}
+                  alt=""
+                  className="h-14 w-full max-w-[4.5rem] object-contain"
+                />
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center gap-1 rounded-lg border border-tech-slate-200 px-3 py-2 text-xs font-semibold text-tech-slate-800 hover:bg-tech-slate-100 dark:border-tech-slate-700 dark:text-warm-cream-100 dark:hover:bg-tech-slate-800"
                   onClick={clearLogo}
+                  className="inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-red-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-red-400"
                 >
-                  <X className="h-3.5 w-3.5" aria-hidden />
-                  Remove logo
+                  <X className="h-3 w-3" aria-hidden />
+                  Clear
                 </button>
-              ) : null}
-            </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex w-full flex-col items-center gap-1 px-1 py-1 text-center"
+              >
+                <ImagePlus
+                  className="h-4 w-4 text-slate-400 dark:text-slate-500"
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  Logo
+                </span>
+                <span className="text-[9px] leading-tight text-slate-400 dark:text-slate-500">
+                  PNG / JPG
+                </span>
+              </button>
+            )}
           </div>
 
-          {logoError ? (
-            <p className="mt-3 text-xs font-medium text-red-600 dark:text-red-400">
-              {logoError}
-            </p>
-          ) : null}
-        </div>
+          <div className="min-w-0 flex-1 space-y-3">
+            {logoError ? (
+              <p className="text-xs font-medium text-red-600 dark:text-red-400">
+                {logoError}
+              </p>
+            ) : null}
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm font-medium text-tech-slate-700 dark:text-warm-cream-200">
-            Company name
-            <input
-              className="mt-1 w-full rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-tech-slate-900 outline-none ring-tech-slate-400 focus:ring-2 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50"
-              value={invoice.sender_data.company_name}
-              onChange={(e) =>
-                updateSenderData({ company_name: e.target.value })
-              }
-            />
-          </label>
-          <label className="block text-sm font-medium text-tech-slate-700 dark:text-warm-cream-200">
-            Sender name
-            <input
-              className="mt-1 w-full rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-tech-slate-900 outline-none ring-tech-slate-400 focus:ring-2 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50"
-              value={invoice.sender_data.sender_name}
-              onChange={(e) =>
-                updateSenderData({ sender_name: e.target.value })
-              }
-            />
-          </label>
-          <label className="block text-sm font-medium text-tech-slate-700 dark:text-warm-cream-200">
-            Email
-            <input
-              type="email"
-              className="mt-1 w-full rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-tech-slate-900 outline-none ring-tech-slate-400 focus:ring-2 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50"
-              value={invoice.sender_data.email}
-              onChange={(e) => updateSenderData({ email: e.target.value })}
-            />
-          </label>
-          <label className="block text-sm font-medium text-tech-slate-700 dark:text-warm-cream-200">
-            Tax / VAT ID
-            <input
-              className="mt-1 w-full rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-tech-slate-900 outline-none ring-tech-slate-400 focus:ring-2 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50"
-              value={invoice.sender_data.tax_id}
-              onChange={(e) => updateSenderData({ tax_id: e.target.value })}
-            />
-          </label>
-          <label className="sm:col-span-2 block text-sm font-medium text-tech-slate-700 dark:text-warm-cream-200">
-            Address
-            <textarea
-              rows={2}
-              className="mt-1 w-full resize-y rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-tech-slate-900 outline-none ring-tech-slate-400 focus:ring-2 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50"
-              value={invoice.sender_data.address}
-              onChange={(e) => updateSenderData({ address: e.target.value })}
-            />
-          </label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className={fieldLabelClass}>
+                Company name
+                <input
+                  className={fieldInputClass}
+                  value={invoice.sender_data.company_name}
+                  onChange={(e) =>
+                    updateSenderData({ company_name: e.target.value })
+                  }
+                  placeholder="Acme Studio"
+                />
+              </label>
+              <label className={fieldLabelClass}>
+                Sender name
+                <input
+                  className={fieldInputClass}
+                  value={invoice.sender_data.sender_name}
+                  onChange={(e) =>
+                    updateSenderData({ sender_name: e.target.value })
+                  }
+                  placeholder="Your name"
+                />
+              </label>
+              <label className={fieldLabelClass}>
+                Email
+                <input
+                  type="email"
+                  className={fieldInputClass}
+                  value={invoice.sender_data.email}
+                  onChange={(e) => updateSenderData({ email: e.target.value })}
+                  placeholder="billing@company.com"
+                />
+              </label>
+              <label className={fieldLabelClass}>
+                Tax / VAT ID
+                <input
+                  className={fieldInputClass}
+                  value={invoice.sender_data.tax_id}
+                  onChange={(e) => updateSenderData({ tax_id: e.target.value })}
+                  placeholder="Optional"
+                />
+              </label>
+              <label className={`sm:col-span-2 ${fieldLabelClass}`}>
+                Address
+                <textarea
+                  rows={2}
+                  className={`${fieldInputClass} resize-y`}
+                  value={invoice.sender_data.address}
+                  onChange={(e) =>
+                    updateSenderData({ address: e.target.value })
+                  }
+                  placeholder="Street, city, postal code"
+                />
+              </label>
+            </div>
+          </div>
         </div>
       </fieldset>
 
       <fieldset className="mt-6 space-y-3">
         <legend className="sr-only">Client</legend>
-        <p className="text-xs font-semibold uppercase tracking-wide text-tech-slate-600 dark:text-warm-cream-300">
-          Client
-        </p>
+        <p className={sectionTitleClass}>Client</p>
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm font-medium text-tech-slate-700 dark:text-warm-cream-200">
+          <label className={fieldLabelClass}>
             Client name
             <input
-              className="mt-1 w-full rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-tech-slate-900 outline-none ring-tech-slate-400 focus:ring-2 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50"
+              className={fieldInputClass}
               value={invoice.client_data.client_name}
               onChange={(e) =>
                 updateClientData({ client_name: e.target.value })
               }
+              placeholder="Client or company"
             />
           </label>
-          <label className="block text-sm font-medium text-tech-slate-700 dark:text-warm-cream-200">
+          <label className={fieldLabelClass}>
             Client email
             <input
               type="email"
-              className="mt-1 w-full rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-tech-slate-900 outline-none ring-tech-slate-400 focus:ring-2 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50"
+              className={fieldInputClass}
               value={invoice.client_data.client_email}
               onChange={(e) =>
                 updateClientData({ client_email: e.target.value })
               }
+              placeholder="accounts@client.com"
             />
           </label>
-          <label className="sm:col-span-2 block text-sm font-medium text-tech-slate-700 dark:text-warm-cream-200">
+          <label className={`sm:col-span-2 ${fieldLabelClass}`}>
             Billing address
             <textarea
               rows={2}
-              className="mt-1 w-full resize-y rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-tech-slate-900 outline-none ring-tech-slate-400 focus:ring-2 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50"
+              className={`${fieldInputClass} resize-y`}
               value={invoice.client_data.client_address}
               onChange={(e) =>
                 updateClientData({ client_address: e.target.value })
               }
+              placeholder="Billing address"
             />
           </label>
         </div>
@@ -341,24 +359,23 @@ export function InvoiceEditor() {
 
       <fieldset className="mt-6 space-y-3">
         <legend className="sr-only">Invoice meta</legend>
-        <p className="text-xs font-semibold uppercase tracking-wide text-tech-slate-600 dark:text-warm-cream-300">
-          Invoice
-        </p>
+        <p className={sectionTitleClass}>Invoice</p>
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm font-medium text-tech-slate-700 dark:text-warm-cream-200">
+          <label className={fieldLabelClass}>
             Invoice number
             <input
-              className="mt-1 w-full rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-tech-slate-900 outline-none ring-tech-slate-400 focus:ring-2 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50"
+              className={fieldInputClass}
               value={invoice.invoice_number}
               onChange={(e) =>
                 updateInvoiceMeta({ invoice_number: e.target.value })
               }
+              placeholder="INV-001"
             />
           </label>
-          <label className="block text-sm font-medium text-tech-slate-700 dark:text-warm-cream-200">
+          <label className={fieldLabelClass}>
             Status
             <select
-              className="mt-1 w-full rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-tech-slate-900 outline-none ring-tech-slate-400 focus:ring-2 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50"
+              className={fieldInputClass}
               value={invoice.status}
               onChange={(e) =>
                 updateInvoiceMeta({
@@ -373,50 +390,51 @@ export function InvoiceEditor() {
               ))}
             </select>
           </label>
-          <label className="block text-sm font-medium text-tech-slate-700 dark:text-warm-cream-200">
+          <label className={fieldLabelClass}>
             Issue date
             <input
               type="date"
-              className="mt-1 w-full rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-tech-slate-900 outline-none ring-tech-slate-400 focus:ring-2 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50"
+              className={fieldInputClass}
               value={invoice.issue_date}
               onChange={(e) =>
                 updateInvoiceMeta({ issue_date: e.target.value })
               }
             />
           </label>
-          <label className="block text-sm font-medium text-tech-slate-700 dark:text-warm-cream-200">
+          <label className={fieldLabelClass}>
             Due date
             <input
               type="date"
-              className="mt-1 w-full rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-tech-slate-900 outline-none ring-tech-slate-400 focus:ring-2 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50"
+              className={fieldInputClass}
               value={invoice.due_date}
               onChange={(e) =>
                 updateInvoiceMeta({ due_date: e.target.value })
               }
             />
           </label>
-          <label className="block text-sm font-medium text-tech-slate-700 dark:text-warm-cream-200">
+          <label className={fieldLabelClass}>
             Tax rate (%)
             <input
               type="number"
               min={0}
               step={0.01}
-              className="mt-1 w-full rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-tech-slate-900 outline-none ring-tech-slate-400 focus:ring-2 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50"
+              className={fieldInputClass}
               value={Number.isFinite(invoice.tax_rate) ? invoice.tax_rate : 0}
               onChange={(e) =>
                 updateInvoiceMeta({
                   tax_rate: Number.parseFloat(e.target.value) || 0,
                 })
               }
+              placeholder="0"
             />
           </label>
-          <label className="block text-sm font-medium text-tech-slate-700 dark:text-warm-cream-200">
+          <label className={fieldLabelClass}>
             Discount (%)
             <input
               type="number"
               min={0}
               step={0.01}
-              className="mt-1 w-full rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-tech-slate-900 outline-none ring-tech-slate-400 focus:ring-2 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50"
+              className={fieldInputClass}
               value={
                 Number.isFinite(invoice.discount_rate)
                   ? invoice.discount_rate
@@ -427,6 +445,7 @@ export function InvoiceEditor() {
                   discount_rate: Number.parseFloat(e.target.value) || 0,
                 })
               }
+              placeholder="0"
             />
           </label>
         </div>
@@ -437,52 +456,54 @@ export function InvoiceEditor() {
       </div>
 
       {showGuestCallout ? (
-        <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-snug text-amber-950 dark:border-amber-500/35 dark:bg-amber-500/10 dark:text-amber-50">
-          Đăng ký tài khoản miễn phí để lưu trữ và quản lý lịch sử hóa đơn vĩnh
-          viễn!
+        <div className="mt-6 flex gap-3 rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3.5 text-sm leading-snug text-amber-800 dark:border-amber-900/45 dark:bg-amber-950/35 dark:text-amber-100">
+          <Sparkles
+            className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400"
+            strokeWidth={1.75}
+            aria-hidden
+          />
+          <p>
+            Đăng ký tài khoản miễn phí để lưu trữ và quản lý lịch sử hóa đơn
+            vĩnh viễn—đồng bộ đám mây và truy cập từ mọi thiết bị.
+          </p>
         </div>
       ) : null}
 
-      <div className="mt-6 rounded-lg border border-tech-slate-200 bg-tech-slate-50 p-4 text-sm dark:border-tech-slate-700 dark:bg-tech-slate-950">
-        <div className="flex justify-between gap-4 py-1">
-          <span className="text-tech-slate-600 dark:text-warm-cream-300">
-            Subtotal
-          </span>
-          <span className="tabular-nums font-medium text-tech-slate-900 dark:text-warm-cream-50">
+      <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-900/40">
+        <div className="flex justify-between gap-4 py-1.5 text-sm">
+          <span className="text-slate-600 dark:text-slate-400">Subtotal</span>
+          <span className="tabular-nums font-medium text-slate-900 dark:text-slate-100">
             {formatMoney(totals.subtotal)}
           </span>
         </div>
-        <div className="flex justify-between gap-4 py-1">
-          <span className="text-tech-slate-600 dark:text-warm-cream-300">
-            Tax
-          </span>
-          <span className="tabular-nums font-medium text-tech-slate-900 dark:text-warm-cream-50">
+        <div className="flex justify-between gap-4 py-1.5 text-sm">
+          <span className="text-slate-600 dark:text-slate-400">Tax</span>
+          <span className="tabular-nums font-medium text-slate-900 dark:text-slate-100">
             {formatMoney(totals.tax_amount)}
           </span>
         </div>
-        <div className="flex justify-between gap-4 py-1">
-          <span className="text-tech-slate-600 dark:text-warm-cream-300">
-            Discount
-          </span>
-          <span className="tabular-nums font-medium text-tech-slate-900 dark:text-warm-cream-50">
+        <div className="flex justify-between gap-4 py-1.5 text-sm">
+          <span className="text-slate-600 dark:text-slate-400">Discount</span>
+          <span className="tabular-nums font-medium text-slate-900 dark:text-slate-100">
             −{formatMoney(totals.discount_amount)}
-          </span>
-        </div>
-        <div className="mt-2 flex justify-between gap-4 border-t border-tech-slate-200 pt-2 text-base font-semibold dark:border-tech-slate-700">
-          <span className="text-tech-slate-800 dark:text-warm-cream-100">
-            Total due
-          </span>
-          <span className="tabular-nums text-tech-slate-900 dark:text-warm-cream-50">
-            {formatMoney(totals.total_amount)}
           </span>
         </div>
       </div>
 
-      <label className="mt-6 block text-sm font-medium text-tech-slate-700 dark:text-warm-cream-200">
+      <div className="mt-3 flex items-center justify-between gap-4 rounded-xl border border-indigo-100/90 bg-white px-4 py-4 shadow-sm dark:border-indigo-900/35 dark:bg-slate-900">
+        <span className="text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+          Total due
+        </span>
+        <span className="tabular-nums text-xl font-bold text-indigo-600 dark:text-indigo-400">
+          {formatMoney(totals.total_amount)}
+        </span>
+      </div>
+
+      <label className={`mt-6 ${fieldLabelClass}`}>
         Notes / payment terms
         <textarea
           rows={4}
-          className="mt-1 w-full resize-y rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-tech-slate-900 outline-none ring-tech-slate-400 focus:ring-2 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50"
+          className={`${fieldInputClass} resize-y`}
           value={invoice.notes}
           onChange={(e) => updateInvoiceMeta({ notes: e.target.value })}
           placeholder="Bank details, thank-you message, or payment instructions."

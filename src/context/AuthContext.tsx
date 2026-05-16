@@ -47,6 +47,8 @@ export interface AuthContextValue {
   supabaseConfigured: boolean;
   authErrorBanner: string | null;
   clearAuthErrorBanner: () => void;
+  /** Sends a one-time sign-in link to the given email via Supabase Auth. Returns true if the request succeeded. */
+  signInWithMagicLink: (email: string) => Promise<boolean>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -160,6 +162,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const session = useMemo(() => (user ? mapUserToSession(user) : null), [user]);
 
+  const signInWithMagicLink = useCallback(
+    async (email: string) => {
+      const trimmed = email.trim();
+      if (!trimmed) {
+        setAuthErrorBanner("Please enter your email address.");
+        return false;
+      }
+
+      const client = getSupabaseBrowserClient();
+      if (!client) {
+        console.warn(
+          "[SnapBill] Cannot send magic link: Supabase client is not configured.",
+        );
+        setAuthErrorBanner(
+          "Supabase is not configured. Add your project keys to sign in.",
+        );
+        return false;
+      }
+
+      clearAuthErrorBanner();
+
+      const emailRedirectTo =
+        typeof window !== "undefined"
+          ? `${window.location.origin}${window.location.pathname}`
+          : undefined;
+
+      const { error } = await client.auth.signInWithOtp({
+        email: trimmed,
+        options: emailRedirectTo ? { emailRedirectTo } : undefined,
+      });
+
+      if (error) {
+        console.warn("[SnapBill] signInWithOtp error:", error.message);
+        setAuthErrorBanner(error.message);
+        return false;
+      }
+
+      return true;
+    },
+    [clearAuthErrorBanner],
+  );
+
   const signInWithGoogle = useCallback(async () => {
     const client = getSupabaseBrowserClient();
     if (!client) {
@@ -206,6 +250,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabaseConfigured,
       authErrorBanner,
       clearAuthErrorBanner,
+      signInWithMagicLink,
       signInWithGoogle,
       signOut,
     }),
@@ -215,6 +260,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       session,
       signInWithGoogle,
+      signInWithMagicLink,
       signOut,
       supabaseConfigured,
       user,

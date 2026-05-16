@@ -5,6 +5,9 @@ import { Plus, Trash2 } from "lucide-react";
 import { useInvoice } from "@/context/InvoiceContext";
 import { formatMoney, lineTotalFromItem, roundCurrency } from "@/lib/money";
 
+const cellInputClass =
+  "rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-900 outline-none transition-shadow placeholder:text-xs placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-50 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400";
+
 export function LineItemsTable() {
   const { invoice, addItem, updateItem, deleteItem } = useInvoice();
 
@@ -27,41 +30,42 @@ export function LineItemsTable() {
     <fieldset>
       <legend className="sr-only">Line items</legend>
       <div className="mb-2 flex items-center justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-tech-slate-600 dark:text-warm-cream-300">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
           Line items
         </p>
         <button
           type="button"
           onClick={addItem}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-tech-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-tech-slate-800 dark:bg-warm-cream-100 dark:text-tech-slate-950 dark:hover:bg-warm-cream-200"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 dark:bg-indigo-500 dark:text-white dark:hover:bg-indigo-400"
         >
           <Plus className="h-3.5 w-3.5" aria-hidden />
           Add item
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-tech-slate-200 dark:border-tech-slate-700">
-        <table className="min-w-full divide-y divide-tech-slate-200 text-sm dark:divide-tech-slate-700">
-          <thead className="bg-tech-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-tech-slate-600 dark:bg-tech-slate-950 dark:text-warm-cream-300">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+        <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-700">
+          <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:bg-slate-900/80 dark:text-slate-400">
             <tr>
-              <th className="px-3 py-2">Description</th>
-              <th className="px-3 py-2">Qty</th>
-              <th className="px-3 py-2">Unit price</th>
-              <th className="px-3 py-2 text-right">Line total</th>
-              <th className="w-12 px-3 py-2">
+              <th className="px-3 py-2.5">Description</th>
+              <th className="px-3 py-2.5">Qty</th>
+              <th className="px-3 py-2.5">Unit price</th>
+              <th className="px-3 py-2.5 text-right">Line total</th>
+              <th className="w-12 px-3 py-2.5">
                 <span className="sr-only">Actions</span>
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-tech-slate-100 dark:divide-tech-slate-800">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {invoice.items.map((item) => {
               const lineTotal = lineTotalFromItem(item.quantity, item.unit_price);
               return (
-                <tr key={item.id}>
+                <tr key={item.id} className="bg-white dark:bg-slate-950/50">
                   <td className="px-3 py-2 align-top">
                     <input
-                      className="w-full min-w-[140px] rounded border border-transparent bg-transparent px-2 py-1 text-tech-slate-900 outline-none hover:border-tech-slate-200 focus:border-tech-slate-300 focus:ring-1 focus:ring-tech-slate-400 dark:text-warm-cream-50 dark:hover:border-tech-slate-700 dark:focus:border-tech-slate-600"
+                      className={`w-full min-w-[140px] ${cellInputClass}`}
                       value={item.description}
+                      placeholder="Service or product"
                       onChange={(e) =>
                         updateItem(item.id, { description: e.target.value })
                       }
@@ -72,7 +76,7 @@ export function LineItemsTable() {
                       type="number"
                       min={1}
                       step={1}
-                      className="w-20 rounded border border-transparent bg-transparent px-2 py-1 text-tech-slate-900 outline-none hover:border-tech-slate-200 focus:border-tech-slate-300 focus:ring-1 focus:ring-tech-slate-400 dark:text-warm-cream-50 dark:hover:border-tech-slate-700 dark:focus:border-tech-slate-600"
+                      className={`w-20 ${cellInputClass}`}
                       value={item.quantity}
                       onChange={(e) => {
                         const raw = Number.parseInt(e.target.value, 10);
@@ -88,8 +92,9 @@ export function LineItemsTable() {
                       type="number"
                       min={0}
                       step={0.01}
-                      className="w-28 rounded border border-transparent bg-transparent px-2 py-1 text-tech-slate-900 outline-none hover:border-tech-slate-200 focus:border-tech-slate-300 focus:ring-1 focus:ring-tech-slate-400 dark:text-warm-cream-50 dark:hover:border-tech-slate-700 dark:focus:border-tech-slate-600"
+                      className={`w-28 ${cellInputClass}`}
                       value={item.unit_price}
+                      placeholder="0.00"
                       onChange={(e) => {
                         const parsed = Number.parseFloat(e.target.value);
                         const next = Number.isFinite(parsed)
@@ -99,14 +104,14 @@ export function LineItemsTable() {
                       }}
                     />
                   </td>
-                  <td className="px-3 py-2 align-top text-right tabular-nums text-tech-slate-700 dark:text-warm-cream-200">
+                  <td className="px-3 py-2 align-top text-right tabular-nums font-medium text-slate-700 dark:text-slate-200">
                     {formatMoney(lineTotal)}
                   </td>
                   <td className="px-3 py-2 align-top">
                     <button
                       type="button"
                       onClick={() => handleRowTrashClick(item.id)}
-                      className="rounded p-1 text-tech-slate-500 hover:bg-tech-slate-100 hover:text-red-600 dark:text-warm-cream-400 dark:hover:bg-tech-slate-800 dark:hover:text-red-400"
+                      className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-red-600 dark:hover:bg-slate-800 dark:hover:text-red-400"
                       aria-label={
                         canDeleteRow ? "Remove line item" : "Clear line item"
                       }
