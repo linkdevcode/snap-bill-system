@@ -30,11 +30,15 @@ import type {
 } from "@/types/invoice";
 import type { InvoiceCurrency, InvoiceLanguage } from "@/types/locale";
 import {
+  INVOICE_CURRENCY_STORAGE_KEY,
   INVOICE_LANGUAGE_STORAGE_KEY,
   parseInvoiceCurrency,
   parseInvoiceLanguage,
 } from "@/types/locale";
-import { readStoredInterfaceLanguage } from "@/utils/translations";
+import {
+  readStoredInterfaceCurrency,
+  readStoredInterfaceLanguage,
+} from "@/utils/translations";
 import { getAppLabels, type AppLabels } from "@/utils/translations";
 import { getSupabaseBrowserClient } from "@/utils/supabase/client";
 
@@ -168,13 +172,26 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<InvoiceLanguage>(() =>
     readStoredInterfaceLanguage(),
   );
-  const [currency, setCurrency] = useState<InvoiceCurrency>("VND");
+  const [currency, setCurrencyState] = useState<InvoiceCurrency>(() =>
+    readStoredInterfaceCurrency(),
+  );
 
   const setLanguage = useCallback((next: InvoiceLanguage) => {
     setLanguageState(next);
     if (typeof window !== "undefined") {
       try {
         window.localStorage.setItem(INVOICE_LANGUAGE_STORAGE_KEY, next);
+      } catch {
+        /* ignore quota / private mode */
+      }
+    }
+  }, []);
+
+  const setCurrency = useCallback((next: InvoiceCurrency) => {
+    setCurrencyState(next);
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem(INVOICE_CURRENCY_STORAGE_KEY, next);
       } catch {
         /* ignore quota / private mode */
       }
@@ -465,13 +482,13 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
     });
     setLanguage(parseInvoiceLanguage(row.language));
     setCurrency(parseInvoiceCurrency(row.currency));
-  }, [setLanguage]);
+  }, [setLanguage, setCurrency]);
 
   const resetInvoiceDraft = useCallback(() => {
     setBase(createDefaultInvoice());
     setLanguage("vi");
     setCurrency("VND");
-  }, [setLanguage]);
+  }, [setLanguage, setCurrency]);
 
   const value = useMemo<InvoiceContextValue>(
     () => ({
@@ -514,6 +531,7 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
       hydrateInvoiceFromRemoteRow,
       resetInvoiceDraft,
       setLanguage,
+      setCurrency,
     ],
   );
 

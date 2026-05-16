@@ -1,18 +1,24 @@
 import {
+  INVOICE_CURRENCY_STORAGE_KEY,
   INVOICE_LANGUAGE_STORAGE_KEY,
+  parseInvoiceCurrency,
   parseInvoiceLanguage,
+  type InvoiceCurrency,
   type InvoiceLanguage,
 } from "@/types/locale";
 import type { InvoiceStatus } from "@/types/invoice";
 
 export interface InvoicePreviewLabels {
   invoice: string;
+  from: string;
+  to: string;
   invoiceNumber: string;
   status: string;
   issueDate: string;
   dueDate: string;
   billTo: string;
   amountDue: string;
+  logoPlaceholder: string;
   description: string;
   qty: string;
   unit: string;
@@ -186,12 +192,15 @@ const LABELS: Record<InvoiceLanguage, AppLabels> = {
   vi: {
     preview: {
       invoice: "HÓA ĐƠN",
+      from: "THÔNG TIN CÔNG TY",
+      to: "THÔNG TIN KHÁCH HÀNG",
       invoiceNumber: "Số HĐ",
       status: "Trạng thái",
       issueDate: "Ngày tạo",
       dueDate: "Hạn thanh toán",
       billTo: "Khách hàng",
       amountDue: "Tổng phải thu",
+      logoPlaceholder: "Logo",
       description: "Mô tả",
       qty: "SL",
       unit: "Đơn giá",
@@ -222,8 +231,8 @@ const LABELS: Record<InvoiceLanguage, AppLabels> = {
       signInForCloud: "Đăng nhập để bật lưu đám mây.",
       configureSupabase:
         "Cấu hình Supabase trong .env để lưu đám mây.",
-      sender: "Người gửi",
-      client: "Khách hàng",
+      sender: "THÔNG TIN CÔNG TY",
+      client: "THÔNG TIN KHÁCH HÀNG",
       invoiceSection: "Hóa đơn",
       companyName: "Tên công ty",
       senderName: "Tên người gửi",
@@ -381,12 +390,15 @@ const LABELS: Record<InvoiceLanguage, AppLabels> = {
   en: {
     preview: {
       invoice: "INVOICE",
+      from: "FROM",
+      to: "TO",
       invoiceNumber: "Invoice #",
       status: "Status",
       issueDate: "Issue date",
       dueDate: "Due date",
       billTo: "Bill to",
       amountDue: "Amount due",
+      logoPlaceholder: "Logo",
       description: "Description",
       qty: "Qty",
       unit: "Unit",
@@ -416,8 +428,8 @@ const LABELS: Record<InvoiceLanguage, AppLabels> = {
       saving: "Saving…",
       signInForCloud: "Sign in to enable cloud saves.",
       configureSupabase: "Configure Supabase in .env to enable cloud saves.",
-      sender: "Sender",
-      client: "Client",
+      sender: "COMPANY INFORMATION",
+      client: "CLIENT INFORMATION",
       invoiceSection: "Invoice",
       companyName: "Company name",
       senderName: "Sender name",
@@ -587,6 +599,19 @@ export function readStoredInterfaceLanguage(): InvoiceLanguage {
     );
   } catch {
     return "vi";
+  }
+}
+
+export function readStoredInterfaceCurrency(): InvoiceCurrency {
+  if (typeof window === "undefined") {
+    return "VND";
+  }
+  try {
+    return parseInvoiceCurrency(
+      window.localStorage.getItem(INVOICE_CURRENCY_STORAGE_KEY),
+    );
+  } catch {
+    return "VND";
   }
 }
 

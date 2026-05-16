@@ -6,6 +6,8 @@ export const INVOICE_LANGUAGES: readonly InvoiceLanguage[] = ["vi", "en"] as con
 
 export const INVOICE_LANGUAGE_STORAGE_KEY = "snapbill-language";
 
+export const INVOICE_CURRENCY_STORAGE_KEY = "snapbill-currency";
+
 export const INVOICE_CURRENCIES: readonly InvoiceCurrency[] = [
   "VND",
   "USD",

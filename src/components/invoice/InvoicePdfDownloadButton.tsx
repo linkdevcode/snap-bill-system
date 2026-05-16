@@ -109,13 +109,15 @@ export function InvoicePdfDownloadButton() {
       type="button"
       onClick={() => void handleDownload()}
       disabled={busy}
-      className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 dark:shadow-indigo-600/25"
+      className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-center text-sm font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto dark:shadow-indigo-600/25"
       aria-busy={busy}
     >
-      <Download className="h-4 w-4" aria-hidden />
-      {busy
-        ? labels.previewChrome.preparingPdf
-        : labels.previewChrome.downloadPdf}
+      <Download className="h-4 w-4 shrink-0" aria-hidden />
+      <span className="text-center leading-snug">
+        {busy
+          ? labels.previewChrome.preparingPdf
+          : labels.previewChrome.downloadPdf}
+      </span>
     </button>
   );
 }
