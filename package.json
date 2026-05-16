@@ -2,7 +2,11 @@
   "name": "snap-bill-system",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
+    "sync-deploy-repo": "bash scripts/sync-deploy-repo.sh",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -19,9 +23,9 @@
     "html2pdf.js": "^0.10.2",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.468.0",
-    "next": "^15.5.18",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "next": "15.5.18",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
   },
   "devDependencies": {
     "@types/node": "^22.10.1",

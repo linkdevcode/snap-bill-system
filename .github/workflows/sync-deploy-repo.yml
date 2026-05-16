@@ -1,0 +1,22 @@
+# Mirrors main to linkdevcode/snap-bill (Cloudflare Pages deploy repo).
+# Add repository secret DEPLOY_REPO_PAT with push access to snap-bill.
+name: Sync deploy repo
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  sync:
+    if: ${{ secrets.DEPLOY_REPO_PAT != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Push to snap-bill
+        env:
+          DEPLOY_REPO_PAT: ${{ secrets.DEPLOY_REPO_PAT }}
+        run: |
+          git remote add deploy "https://x-access-token:${DEPLOY_REPO_PAT}@github.com/linkdevcode/snap-bill.git"
+          git push deploy HEAD:main --force
