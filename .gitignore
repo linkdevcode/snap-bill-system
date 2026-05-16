@@ -1,0 +1,11 @@
+/node_modules
+/.next/
+/out/
+*.log
+.env*.local
+.DS_Store
+
+# Local PDF scratch exports (do not commit)
+/test/*.pdf
+
+.cursorules
