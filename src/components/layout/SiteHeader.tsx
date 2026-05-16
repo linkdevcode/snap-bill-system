@@ -1,67 +1,114 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 import { AuthToolbar } from "@/components/auth/AuthToolbar";
 import { AdSlot } from "@/components/invoice/AdSlot";
+import { AppBrand } from "@/components/layout/AppBrand";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { useAuth } from "@/context/AuthContext";
 import type { WorkspaceView } from "@/types/workspace";
 
 export interface SiteHeaderProps {
-  showWorkspaceNav?: boolean;
   workspaceView?: WorkspaceView;
   onWorkspaceViewChange?: (view: WorkspaceView) => void;
+  signInOpen?: boolean;
+  onSignInOpenChange?: (open: boolean) => void;
+}
+
+const navLinkBase =
+  "rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500";
+
+function navLinkClass(active: boolean): string {
+  return active
+    ? `${navLinkBase} text-indigo-600 dark:text-indigo-400`
+    : `${navLinkBase} text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100`;
 }
 
 export function SiteHeader({
-  showWorkspaceNav = false,
   workspaceView = "editor",
   onWorkspaceViewChange,
+  signInOpen = false,
+  onSignInOpenChange,
 }: SiteHeaderProps) {
+  const pathname = usePathname();
+  const { session, loading } = useAuth();
   const topSlotId = process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP ?? "";
 
-  return (
-    <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-      <div className="min-w-0 flex-1">
-        <AdSlot slotId={topSlotId} layout="banner" />
-      </div>
+  const isDocs = pathname === "/docs";
+  const isHome = pathname === "/";
 
-      <div className="flex shrink-0 flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4 lg:pl-4">
-        {showWorkspaceNav && onWorkspaceViewChange ? (
-          <div
-            className="flex w-full justify-end rounded-lg border border-tech-slate-200 bg-white p-0.5 dark:border-tech-slate-700 dark:bg-tech-slate-950 sm:w-auto"
-            role="tablist"
-            aria-label="Workspace"
+  const handleEditorNav = () => {
+    if (isHome && onWorkspaceViewChange) {
+      onWorkspaceViewChange("editor");
+      return;
+    }
+    if (!isHome) {
+      window.location.href = "/";
+    }
+  };
+
+  const handleInvoicesNav = () => {
+    if (!session && !loading) {
+      onSignInOpenChange?.(true);
+      return;
+    }
+    if (isHome && onWorkspaceViewChange) {
+      onWorkspaceViewChange("dashboard");
+      return;
+    }
+    if (!isHome) {
+      window.location.href = "/?view=dashboard";
+    }
+  };
+
+  return (
+    <div className="mb-6">
+      <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-8">
+          <AppBrand />
+
+          <nav
+            className="order-3 flex w-full flex-wrap items-center justify-center gap-1 sm:order-2 sm:w-auto sm:flex-1 sm:justify-center"
+            aria-label="Điều hướng chính"
           >
             <button
               type="button"
-              role="tab"
-              aria-selected={workspaceView === "editor"}
-              className={`rounded-md px-3 py-2 text-xs font-semibold transition-colors ${
-                workspaceView === "editor"
-                  ? "bg-tech-slate-900 text-white dark:bg-warm-cream-100 dark:text-tech-slate-950"
-                  : "text-tech-slate-700 hover:bg-tech-slate-50 dark:text-warm-cream-200 dark:hover:bg-tech-slate-900"
-              }`}
-              onClick={() => onWorkspaceViewChange("editor")}
+              className={navLinkClass(
+                isHome && workspaceView === "editor" && !isDocs,
+              )}
+              onClick={handleEditorNav}
             >
-              Editor
+              Trình tạo
             </button>
             <button
               type="button"
-              role="tab"
-              aria-selected={workspaceView === "dashboard"}
-              className={`rounded-md px-3 py-2 text-xs font-semibold transition-colors ${
-                workspaceView === "dashboard"
-                  ? "bg-tech-slate-900 text-white dark:bg-warm-cream-100 dark:text-tech-slate-950"
-                  : "text-tech-slate-700 hover:bg-tech-slate-50 dark:text-warm-cream-200 dark:hover:bg-tech-slate-900"
-              }`}
-              onClick={() => onWorkspaceViewChange("dashboard")}
+              className={navLinkClass(
+                isHome && workspaceView === "dashboard" && !isDocs,
+              )}
+              onClick={handleInvoicesNav}
             >
-              My Invoices
+              Hóa đơn của tôi
             </button>
-          </div>
-        ) : null}
+            <Link href="/docs" className={navLinkClass(isDocs)}>
+              Tài liệu
+            </Link>
+          </nav>
 
-        <div className="flex justify-end">
-          <AuthToolbar />
+          <div className="order-2 flex shrink-0 items-center gap-2 sm:order-3">
+            <ThemeToggle />
+            <AuthToolbar
+              layout="header"
+              signInOpen={signInOpen}
+              onSignInOpenChange={onSignInOpenChange}
+            />
+          </div>
         </div>
+      </header>
+
+      <div className="mx-auto mt-4 max-w-[1400px] px-4 md:px-8">
+        <AdSlot slotId={topSlotId} layout="banner" />
       </div>
     </div>
   );

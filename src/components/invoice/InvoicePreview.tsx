@@ -22,9 +22,9 @@ export function InvoicePreview() {
   const logoSrc = invoice.sender_data.logo_url.trim();
 
   return (
-    <div className="rounded-xl border border-tech-slate-800/10 bg-white p-4 shadow-sm dark:border-warm-cream-200/10 dark:bg-tech-slate-900 lg:sticky lg:top-6 lg:self-start">
+    <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-700/80 dark:bg-slate-900 lg:sticky lg:top-6 lg:self-start">
       <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wide text-tech-slate-500 dark:text-warm-cream-400">
+        <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           Live preview
         </p>
         <InvoicePdfDownloadButton />
@@ -33,14 +33,13 @@ export function InvoicePreview() {
       <div className="flex justify-center overflow-x-auto">
         <section
           id="invoice-paper"
-          className="relative box-border min-h-[842px] w-full max-w-[595px] shrink-0 bg-white p-10 text-tech-slate-900 shadow-[0_1px_3px_rgba(15,23,42,0.12)] ring-1 ring-black/5 print:border-0 print:shadow-none print:ring-0"
+          className="relative box-border min-h-[842px] w-full max-w-[595px] shrink-0 bg-white p-10 text-slate-900 shadow-[0_1px_3px_rgba(15,23,42,0.12)] ring-1 ring-black/5 print:border-0 print:shadow-none print:ring-0"
           aria-label="Invoice preview sheet"
         >
-          <header className="flex flex-col gap-6 border-b border-tech-slate-200 pb-6 sm:flex-row sm:items-start sm:justify-between">
+          <header className="flex flex-col gap-6 border-b border-slate-200 pb-6 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
               {logoSrc ? (
                 <div className="shrink-0">
-                  {/* Base64/data URLs from FileReader — native <img> avoids Next/Image remote patterns */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={logoSrc}
@@ -51,17 +50,17 @@ export function InvoicePreview() {
               ) : null}
 
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-tech-slate-500">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
                   Invoice
                 </p>
-                <h1 className="mt-2 text-3xl font-bold tracking-tight text-tech-slate-900">
+                <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
                   {invoice.sender_data.company_name.trim() ||
                     "Your company name"}
                 </h1>
-                <p className="mt-1 text-sm text-tech-slate-700">
+                <p className="mt-1 text-sm text-slate-700">
                   {invoice.sender_data.sender_name}
                 </p>
-                <div className="mt-3 space-y-1 text-sm leading-snug text-tech-slate-700">
+                <div className="mt-3 space-y-1 text-sm leading-snug text-slate-700">
                   {invoice.sender_data.email ? (
                     <p>{invoice.sender_data.email}</p>
                   ) : null}
@@ -71,7 +70,7 @@ export function InvoicePreview() {
                     </p>
                   ) : null}
                   {invoice.sender_data.tax_id ? (
-                    <p className="text-tech-slate-600">
+                    <p className="text-slate-600">
                       Tax / VAT: {invoice.sender_data.tax_id}
                     </p>
                   ) : null}
@@ -79,25 +78,25 @@ export function InvoicePreview() {
               </div>
             </div>
 
-            <dl className="grid gap-2 text-sm text-tech-slate-800 sm:text-right">
+            <dl className="grid gap-2 text-sm text-slate-800 sm:text-right">
               <div className="flex flex-col gap-0.5 sm:items-end">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-tech-slate-500">
+                <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">
                   Invoice #
                 </dt>
-                <dd className="font-semibold tabular-nums text-tech-slate-900">
+                <dd className="font-semibold tabular-nums text-slate-900">
                   {invoice.invoice_number || "—"}
                 </dd>
               </div>
               <div className="flex flex-col gap-0.5 sm:items-end">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-tech-slate-500">
+                <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">
                   Status
                 </dt>
-                <dd className="inline-flex items-center rounded-full bg-tech-slate-100 px-2.5 py-0.5 text-xs font-semibold capitalize text-tech-slate-800">
+                <dd className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold capitalize text-slate-800">
                   {invoice.status}
                 </dd>
               </div>
               <div className="flex flex-col gap-0.5 sm:items-end">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-tech-slate-500">
+                <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">
                   Issue date
                 </dt>
                 <dd className="tabular-nums">
@@ -105,7 +104,7 @@ export function InvoicePreview() {
                 </dd>
               </div>
               <div className="flex flex-col gap-0.5 sm:items-end">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-tech-slate-500">
+                <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">
                   Due date
                 </dt>
                 <dd className="tabular-nums">
@@ -115,15 +114,15 @@ export function InvoicePreview() {
             </dl>
           </header>
 
-          <section className="mt-6 grid gap-6 border-b border-tech-slate-200 pb-6 sm:grid-cols-2">
+          <section className="mt-6 grid gap-6 border-b border-slate-200 pb-6 sm:grid-cols-2">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-tech-slate-500">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
                 Bill to
               </p>
-              <p className="mt-2 text-lg font-semibold text-tech-slate-900">
+              <p className="mt-2 text-lg font-semibold text-slate-900">
                 {invoice.client_data.client_name.trim() || "Client name"}
               </p>
-              <div className="mt-2 space-y-1 text-sm text-tech-slate-700">
+              <div className="mt-2 space-y-1 text-sm text-slate-700">
                 {invoice.client_data.client_email ? (
                   <p>{invoice.client_data.client_email}</p>
                 ) : null}
@@ -134,11 +133,11 @@ export function InvoicePreview() {
                 ) : null}
               </div>
             </div>
-            <div className="sm:text-right">
-              <p className="text-xs font-semibold uppercase tracking-wide text-tech-slate-500">
+            <div className="text-right sm:text-right">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
                 Amount due
               </p>
-              <p className="mt-2 text-3xl font-bold tabular-nums text-tech-slate-900">
+              <p className="mt-2 text-3xl font-bold tabular-nums text-indigo-600">
                 {formatMoney(totals.total_amount)}
               </p>
             </div>
@@ -147,14 +146,14 @@ export function InvoicePreview() {
           <div className="mt-6 overflow-x-auto">
             <table className="w-full border-collapse text-sm">
               <thead>
-                <tr className="border-b border-tech-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-tech-slate-600">
+                <tr className="border-b border-slate-200 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
                   <th className="py-2 pr-4">Description</th>
                   <th className="py-2 pr-4 text-right">Qty</th>
                   <th className="py-2 pr-4 text-right">Unit</th>
                   <th className="py-2 text-right">Total</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-tech-slate-100">
+              <tbody className="divide-y divide-slate-100">
                 {invoice.items.map((item) => {
                   const lineTotal = lineTotalFromItem(
                     item.quantity,
@@ -165,9 +164,9 @@ export function InvoicePreview() {
                   return (
                     <tr
                       key={item.id}
-                      className="snapbill-avoid-break align-top text-tech-slate-800"
+                      className="snapbill-avoid-break align-top text-slate-800"
                     >
-                      <td className="py-3 pr-4 font-medium text-tech-slate-900">
+                      <td className="py-3 pr-4 font-medium text-slate-900">
                         {label}
                       </td>
                       <td className="py-3 pr-4 text-right tabular-nums">
@@ -176,7 +175,7 @@ export function InvoicePreview() {
                       <td className="py-3 pr-4 text-right tabular-nums">
                         {formatMoney(item.unit_price)}
                       </td>
-                      <td className="py-3 text-right tabular-nums font-semibold text-tech-slate-900">
+                      <td className="py-3 text-right tabular-nums font-semibold text-slate-900">
                         {formatMoney(lineTotal)}
                       </td>
                     </tr>
@@ -186,39 +185,39 @@ export function InvoicePreview() {
             </table>
           </div>
 
-          <div className="mt-6 ml-auto w-full max-w-xs space-y-2 text-sm">
-            <div className="flex justify-between gap-6 text-tech-slate-700">
+          <div className="mt-6 ml-auto w-full max-w-xs space-y-2 text-right text-sm">
+            <div className="flex justify-end gap-6 text-slate-700">
               <span>Subtotal</span>
-              <span className="tabular-nums font-medium text-tech-slate-900">
+              <span className="tabular-nums font-medium text-slate-900">
                 {formatMoney(totals.subtotal)}
               </span>
             </div>
-            <div className="flex justify-between gap-6 text-tech-slate-700">
+            <div className="flex justify-end gap-6 text-slate-700">
               <span>Tax</span>
-              <span className="tabular-nums font-medium text-tech-slate-900">
+              <span className="tabular-nums font-medium text-slate-900">
                 {formatMoney(totals.tax_amount)}
               </span>
             </div>
-            <div className="flex justify-between gap-6 text-tech-slate-700">
+            <div className="flex justify-end gap-6 text-slate-700">
               <span>Discount</span>
-              <span className="tabular-nums font-medium text-tech-slate-900">
+              <span className="tabular-nums font-medium text-slate-900">
                 −{formatMoney(totals.discount_amount)}
               </span>
             </div>
-            <div className="flex justify-between gap-6 border-t border-tech-slate-200 pt-3 text-base font-semibold text-tech-slate-900">
-              <span>Total</span>
-              <span className="tabular-nums">
+            <div className="flex justify-end gap-6 border-t border-slate-100 pt-2 text-lg font-black text-slate-900">
+              <span className="uppercase tracking-tight">TỔNG:</span>
+              <span className="tabular-nums text-indigo-600">
                 {formatMoney(totals.total_amount)}
               </span>
             </div>
           </div>
 
           {invoice.notes.trim() ? (
-            <section className="mt-8 border-t border-tech-slate-200 pt-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-tech-slate-500">
+            <section className="mt-8 border-t border-slate-200 pt-6">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
                 Notes
               </p>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-tech-slate-800">
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
                 {invoice.notes}
               </p>
             </section>

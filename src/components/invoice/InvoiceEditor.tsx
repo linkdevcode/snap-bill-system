@@ -13,13 +13,13 @@ const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 const ACCEPTED_MIME_TYPES = new Set(["image/png", "image/jpeg"]);
 
 const fieldLabelClass =
-  "block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400";
+  "block text-xs font-bold uppercase text-slate-500 dark:text-slate-400";
 
 const fieldInputClass =
-  "mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-shadow placeholder:text-xs placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-50 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400";
+  "mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 p-2 text-sm text-slate-900 outline-none transition-shadow placeholder:text-xs placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-50 dark:placeholder:text-slate-500 dark:focus:ring-indigo-400";
 
 const sectionTitleClass =
-  "text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400";
+  "text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400";
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -149,7 +149,7 @@ export function InvoiceEditor() {
             type="button"
             onClick={() => void saveInvoice()}
             disabled={!canCloudSave || isSavingInvoice}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-sky-500 dark:text-tech-slate-950 dark:hover:bg-sky-400"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 dark:shadow-indigo-600/25"
           >
             <CloudUpload className="h-4 w-4" aria-hidden />
             {isSavingInvoice ? "Saving…" : "Save to Cloud"}
@@ -170,14 +170,14 @@ export function InvoiceEditor() {
           ) : null}
 
           {!canCloudSave && supabaseConfigured ? (
-            <p className="text-right text-[11px] leading-snug text-tech-slate-500 dark:text-warm-cream-400">
-              Sign in to enable cloud saves.
+            <p className="text-right text-[11px] leading-snug text-slate-500 dark:text-slate-400">
+              Đăng nhập để bật lưu đám mây.
             </p>
           ) : null}
 
           {!supabaseConfigured ? (
-            <p className="text-right text-[11px] leading-snug text-tech-slate-500 dark:text-warm-cream-400">
-              Configure Supabase keys locally to enable Save to Cloud.
+            <p className="text-right text-[11px] leading-snug text-slate-500 dark:text-slate-400">
+              Cấu hình Supabase trong .env để lưu đám mây.
             </p>
           ) : null}
         </div>
@@ -451,25 +451,7 @@ export function InvoiceEditor() {
         </div>
       </fieldset>
 
-      <div className="mt-6">
-        <LineItemsTable />
-      </div>
-
-      {showGuestCallout ? (
-        <div className="mt-6 flex gap-3 rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3.5 text-sm leading-snug text-amber-800 dark:border-amber-900/45 dark:bg-amber-950/35 dark:text-amber-100">
-          <Sparkles
-            className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400"
-            strokeWidth={1.75}
-            aria-hidden
-          />
-          <p>
-            Đăng ký tài khoản miễn phí để lưu trữ và quản lý lịch sử hóa đơn
-            vĩnh viễn—đồng bộ đám mây và truy cập từ mọi thiết bị.
-          </p>
-        </div>
-      ) : null}
-
-      <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-900/40">
+      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900/60">
         <div className="flex justify-between gap-4 py-1.5 text-sm">
           <span className="text-slate-600 dark:text-slate-400">Subtotal</span>
           <span className="tabular-nums font-medium text-slate-900 dark:text-slate-100">
@@ -488,15 +470,12 @@ export function InvoiceEditor() {
             −{formatMoney(totals.discount_amount)}
           </span>
         </div>
-      </div>
-
-      <div className="mt-3 flex items-center justify-between gap-4 rounded-xl border border-indigo-100/90 bg-white px-4 py-4 shadow-sm dark:border-indigo-900/35 dark:bg-slate-900">
-        <span className="text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
-          Total due
-        </span>
-        <span className="tabular-nums text-xl font-bold text-indigo-600 dark:text-indigo-400">
-          {formatMoney(totals.total_amount)}
-        </span>
+        <div className="mt-2 flex justify-between gap-4 border-t border-slate-100 pt-2 text-lg font-black text-slate-900 dark:border-slate-800 dark:text-slate-50">
+          <span className="uppercase tracking-tight">TỔNG:</span>
+          <span className="tabular-nums text-indigo-600 dark:text-indigo-400">
+            {formatMoney(totals.total_amount)}
+          </span>
+        </div>
       </div>
 
       <label className={`mt-6 ${fieldLabelClass}`}>

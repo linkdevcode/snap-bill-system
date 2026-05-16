@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { InvoiceDashboard } from "@/components/invoice/InvoiceDashboard";
 import { AdSlot } from "@/components/invoice/AdSlot";
@@ -25,7 +26,16 @@ const InvoicePreview = dynamic(
 
 export function InvoiceShell() {
   const { session, loading } = useAuth();
+  const searchParams = useSearchParams();
   const [view, setView] = useState<WorkspaceView>("editor");
+  const [signInOpen, setSignInOpen] = useState(false);
+
+  useEffect(() => {
+    const requested = searchParams.get("view");
+    if (requested === "dashboard" && session) {
+      setView("dashboard");
+    }
+  }, [searchParams, session]);
 
   useEffect(() => {
     if (!loading && !session) {
@@ -33,42 +43,35 @@ export function InvoiceShell() {
     }
   }, [loading, session]);
 
-  const showWorkspaceNav = Boolean(session && !loading);
   const sidebarSlotId = process.env.NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR ?? "";
 
   return (
-    <div className="min-h-screen bg-warm-cream-50 dark:bg-tech-slate-950">
-      <div className="mx-auto max-w-[1600px] px-4 pb-12 pt-6">
-        <SiteHeader
-          showWorkspaceNav={showWorkspaceNav}
-          workspaceView={view}
-          onWorkspaceViewChange={setView}
-        />
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <SiteHeader
+        workspaceView={view}
+        onWorkspaceViewChange={setView}
+        signInOpen={signInOpen}
+        onSignInOpenChange={setSignInOpen}
+      />
 
+      <div className="mx-auto max-w-[1400px] px-4 pb-12 md:px-8">
         {view === "dashboard" && session ? (
           <InvoiceDashboard onSwitchToEditor={() => setView("editor")} />
         ) : (
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_300px]">
-            <div className="flex min-h-0 flex-col gap-6 xl:col-span-2 xl:flex-row xl:items-start">
-              <div className="min-h-0 flex-1">
-                <InvoiceEditor />
-              </div>
-              <div className="min-h-0 flex-1">
-                <InvoicePreview />
-              </div>
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+            <div className="lg:col-span-7">
+              <InvoiceEditor />
             </div>
-
-            <aside className="hidden lg:block lg:w-[300px] xl:w-auto">
-              <AdSlot slotId={sidebarSlotId} layout="sidebar" />
-            </aside>
+            <div className="lg:col-span-5">
+              <InvoicePreview />
+            </div>
+            {view === "editor" ? (
+              <div className="lg:col-span-12">
+                <AdSlot slotId={sidebarSlotId} layout="sidebar" />
+              </div>
+            ) : null}
           </div>
         )}
-
-        {view === "editor" ? (
-          <div className="mt-6 lg:hidden">
-            <AdSlot slotId={sidebarSlotId} layout="sidebar" />
-          </div>
-        ) : null}
       </div>
     </div>
   );

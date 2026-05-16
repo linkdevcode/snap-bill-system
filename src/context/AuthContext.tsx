@@ -47,8 +47,10 @@ export interface AuthContextValue {
   supabaseConfigured: boolean;
   authErrorBanner: string | null;
   clearAuthErrorBanner: () => void;
-  /** Sends a one-time sign-in link to the given email via Supabase Auth. Returns true if the request succeeded. */
-  signInWithMagicLink: (email: string) => Promise<boolean>;
+  /** Gửi mã OTP 6 số tới email (Supabase Auth). */
+  sendEmailOtp: (email: string) => Promise<boolean>;
+  /** Xác nhận OTP email và thiết lập phiên đăng nhập. */
+  verifyEmailOtp: (email: string, token: string) => Promise<boolean>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -162,39 +164,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const session = useMemo(() => (user ? mapUserToSession(user) : null), [user]);
 
-  const signInWithMagicLink = useCallback(
+  const sendEmailOtp = useCallback(
     async (email: string) => {
       const trimmed = email.trim();
       if (!trimmed) {
-        setAuthErrorBanner("Please enter your email address.");
+        setAuthErrorBanner("Vui lòng nhập địa chỉ email.");
         return false;
       }
 
       const client = getSupabaseBrowserClient();
       if (!client) {
-        console.warn(
-          "[SnapBill] Cannot send magic link: Supabase client is not configured.",
-        );
+        console.warn("[SnapBill] sendEmailOtp: Supabase client not configured.");
         setAuthErrorBanner(
-          "Supabase is not configured. Add your project keys to sign in.",
+          "Chưa cấu hình Supabase. Thêm khóa dự án vào .env để đăng nhập.",
         );
         return false;
       }
 
       clearAuthErrorBanner();
 
-      const emailRedirectTo =
-        typeof window !== "undefined"
-          ? `${window.location.origin}${window.location.pathname}`
-          : undefined;
-
       const { error } = await client.auth.signInWithOtp({
         email: trimmed,
-        options: emailRedirectTo ? { emailRedirectTo } : undefined,
+        options: { shouldCreateUser: true },
       });
 
       if (error) {
         console.warn("[SnapBill] signInWithOtp error:", error.message);
+        setAuthErrorBanner(error.message);
+        return false;
+      }
+
+      return true;
+    },
+    [clearAuthErrorBanner],
+  );
+
+  const verifyEmailOtp = useCallback(
+    async (email: string, token: string) => {
+      const trimmedEmail = email.trim();
+      const digits = token.replace(/\D/g, "");
+
+      if (!trimmedEmail) {
+        setAuthErrorBanner("Thiếu email. Vui lòng gửi mã lại.");
+        return false;
+      }
+
+      if (digits.length !== 6) {
+        setAuthErrorBanner("Mã OTP phải gồm đúng 6 chữ số.");
+        return false;
+      }
+
+      const client = getSupabaseBrowserClient();
+      if (!client) {
+        setAuthErrorBanner("Chưa cấu hình Supabase.");
+        return false;
+      }
+
+      clearAuthErrorBanner();
+
+      const { error } = await client.auth.verifyOtp({
+        email: trimmedEmail,
+        token: digits,
+        type: "email",
+      });
+
+      if (error) {
+        console.warn("[SnapBill] verifyOtp error:", error.message);
         setAuthErrorBanner(error.message);
         return false;
       }
@@ -250,7 +285,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabaseConfigured,
       authErrorBanner,
       clearAuthErrorBanner,
-      signInWithMagicLink,
+      sendEmailOtp,
+      verifyEmailOtp,
       signInWithGoogle,
       signOut,
     }),
@@ -259,8 +295,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearAuthErrorBanner,
       loading,
       session,
+      sendEmailOtp,
+      verifyEmailOtp,
       signInWithGoogle,
-      signInWithMagicLink,
       signOut,
       supabaseConfigured,
       user,

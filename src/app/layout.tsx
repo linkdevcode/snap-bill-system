@@ -63,7 +63,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
+      <head>
+        <Script id="snapbill-theme-init" strategy="beforeInteractive">
+          {`(function(){try{var k='snapbill-theme';var s=localStorage.getItem(k);var d=s==='dark'||(s!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`}
+        </Script>
+      </head>
+      <body className="min-h-screen bg-slate-50 antialiased dark:bg-slate-950">
         <AdsenseBootstrapScript />
         <AppProviders>{children}</AppProviders>
       </body>
