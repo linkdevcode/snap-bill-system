@@ -1,6 +1,9 @@
 /node_modules
 /.next/
+/.open-next/
+/.wrangler/
 /out/
+.dev.vars
 *.log
 .env*.local
 .DS_Store
