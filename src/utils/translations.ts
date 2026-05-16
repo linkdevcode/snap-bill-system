@@ -101,6 +101,7 @@ export interface AppLabels {
   previewChrome: {
     livePreview: string;
     downloadPdf: string;
+    printPdf: string;
     preparingPdf: string;
     previewAria: string;
   };
@@ -259,7 +260,7 @@ const LABELS: Record<InvoiceLanguage, AppLabels> = {
       removeLineItem: "Xóa dòng hàng",
       clearLineItem: "Xóa nội dung dòng",
       guestCallout:
-        "Đăng ký tài khoản miễn phí để lưu trữ và quản lý lịch sử hóa đơn vĩnh viễn—đồng bộ đám mây và truy cập từ mọi thiết bị.",
+        "Đăng ký tài khoản miễn phí để lưu trữ và quản lý lịch sử hóa đơn vĩnh viễn và truy cập từ mọi thiết bị.",
       placeholders: {
         companyName: "Công ty ABC",
         senderName: "Họ tên của bạn",
@@ -282,6 +283,7 @@ const LABELS: Record<InvoiceLanguage, AppLabels> = {
     previewChrome: {
       livePreview: "Xem trước trực tiếp",
       downloadPdf: "Tải PDF",
+      printPdf: "In PDF",
       preparingPdf: "Đang tạo PDF…",
       previewAria: "Tờ hóa đơn xem trước",
     },
@@ -456,7 +458,7 @@ const LABELS: Record<InvoiceLanguage, AppLabels> = {
       removeLineItem: "Remove line item",
       clearLineItem: "Clear line item",
       guestCallout:
-        "Create a free account to save and manage your invoice history forever—cloud sync across all your devices.",
+        "Create a free account to save and manage your invoice history across all your devices.",
       placeholders: {
         companyName: "Acme Studio",
         senderName: "Your name",
@@ -479,6 +481,7 @@ const LABELS: Record<InvoiceLanguage, AppLabels> = {
     previewChrome: {
       livePreview: "Live preview",
       downloadPdf: "Download PDF",
+      printPdf: "Print PDF",
       preparingPdf: "Preparing PDF…",
       previewAria: "Invoice preview sheet",
     },

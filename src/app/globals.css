@@ -9,3 +9,39 @@
 body {
   @apply min-h-screen bg-warm-cream-50 text-tech-slate-900 antialiased dark:bg-tech-slate-950 dark:text-warm-cream-100;
 }
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  body {
+    background: #fff !important;
+    color: #0f172a !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #invoice-paper,
+  #invoice-paper * {
+    visibility: visible;
+  }
+
+  #invoice-paper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    background: #fff !important;
+    color: #0f172a !important;
+  }
+}

@@ -2,7 +2,7 @@
 
 import { Building2 } from "lucide-react";
 
-import { InvoicePdfDownloadButton } from "@/components/invoice/InvoicePdfDownloadButton";
+import { InvoicePreviewActions } from "@/components/invoice/InvoicePreviewActions";
 import { useInvoice } from "@/context/InvoiceContext";
 import { lineTotalFromItem } from "@/lib/money";
 import { formatInvoiceDate, statusLabel } from "@/utils/translations";
@@ -29,7 +29,7 @@ export function InvoicePreview() {
           {labels.previewChrome.livePreview}
         </p>
         <div className="flex w-full justify-center sm:w-auto sm:shrink-0">
-          <InvoicePdfDownloadButton />
+          <InvoicePreviewActions />
         </div>
       </div>
 
@@ -147,7 +147,7 @@ export function InvoicePreview() {
           </section>
 
           {/* Line items — mobile */}
-          <ul className="space-y-2 md:hidden">
+          <ul className="space-y-2 md:hidden print:hidden">
             {invoice.items.map((item) => {
               const lineTotal = lineTotalFromItem(
                 item.quantity,
@@ -195,7 +195,7 @@ export function InvoicePreview() {
           </ul>
 
           {/* Line items — desktop */}
-          <div className="hidden overflow-x-auto md:block">
+          <div className="hidden overflow-x-auto md:block print:block">
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b border-slate-100 text-left text-xs font-bold uppercase tracking-wide text-slate-500">
