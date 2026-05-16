@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { Download } from "lucide-react";
 
 import { useInvoice } from "@/context/InvoiceContext";
+import { exportInvoiceElementToPdf } from "@/lib/export-invoice-pdf";
 import type { Invoice } from "@/types/invoice";
 
 function sanitizePdfSegment(raw: string): string {
@@ -49,56 +50,8 @@ export function InvoicePdfDownloadButton() {
     setBusy(true);
 
     try {
-      const imported = await import("html2pdf.js");
-      const html2pdf = imported.default;
-
       const filename = buildInvoicePdfFilename(invoice);
-
-      await html2pdf()
-        .set({
-          margin: [10, 10, 10, 10],
-          filename,
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            scrollY: -window.scrollY,
-            backgroundColor: "#ffffff",
-            onclone: (clonedDoc: Document) => {
-              const node = clonedDoc.getElementById("invoice-paper");
-              if (!(node instanceof HTMLElement)) {
-                return;
-              }
-
-              node.style.boxShadow = "none";
-              node.style.borderRadius = "0";
-              node.style.outline = "none";
-              node.style.border = "none";
-              node.style.minHeight = "auto";
-
-              node.querySelectorAll<HTMLElement>("[data-pdf-hide]").forEach(
-                (el) => {
-                  el.style.display = "none";
-                },
-              );
-
-              clonedDoc.documentElement.style.backgroundColor = "#ffffff";
-              clonedDoc.body.style.backgroundColor = "#ffffff";
-            },
-          },
-          jsPDF: {
-            unit: "mm",
-            format: "a4",
-            orientation: "portrait",
-          },
-          pagebreak: {
-            mode: ["css", "legacy"],
-            avoid: ["tr", ".snapbill-avoid-break"],
-          },
-        })
-        .from(element)
-        .save();
+      await exportInvoiceElementToPdf(element, filename);
     } finally {
       setBusy(false);
     }

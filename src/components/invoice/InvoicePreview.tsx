@@ -23,8 +23,11 @@ export function InvoicePreview() {
     invoice.client_data.client_name.trim() || preview.defaultClient;
 
   return (
-    <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-700/80 dark:bg-slate-900 lg:sticky lg:top-6 lg:self-start">
-      <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="snapbill-print-shell rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-700/80 dark:bg-slate-900 lg:sticky lg:top-6 lg:self-start">
+      <div
+        className="snapbill-no-print mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+        data-snapbill-print-hide
+      >
         <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           {labels.previewChrome.livePreview}
         </p>
@@ -33,15 +36,15 @@ export function InvoicePreview() {
         </div>
       </div>
 
-      <div className="flex justify-center overflow-x-auto">
+      <div className="snapbill-print-area flex justify-center overflow-x-auto print:overflow-visible">
         <section
           id="invoice-paper"
-          className="relative box-border min-h-[842px] w-full max-w-[595px] shrink-0 bg-white p-10 text-slate-900 shadow-[0_1px_3px_rgba(15,23,42,0.12)] ring-1 ring-black/5 print:border-0 print:shadow-none print:ring-0"
+          className="relative box-border w-full max-w-[595px] shrink-0 bg-white p-10 text-slate-900 shadow-[0_1px_3px_rgba(15,23,42,0.12)] ring-1 ring-black/5 min-h-0 print:min-h-0 print:h-auto print:max-h-none print:border-0 print:shadow-none print:ring-0"
           aria-label={labels.previewChrome.previewAria}
           lang={language}
         >
           {/* Header: title + meta left, logo right */}
-          <header className="flex items-start justify-between gap-6 border-b border-slate-100 pb-6">
+          <header className="snapbill-print-avoid-break flex items-start justify-between gap-6 pb-2">
             <div className="min-w-0 flex-1">
               <h1 className="mb-6 text-2xl font-black tracking-tight text-slate-900">
                 {preview.invoice}
@@ -53,10 +56,10 @@ export function InvoicePreview() {
                     {invoice.invoice_number || "—"}
                   </dd>
                 </div>
-                <div>
+                <div className="snapbill-meta-status-cell">
                   <dt className={metaLabelClass}>{preview.status}</dt>
-                  <dd>
-                    <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-800">
+                  <dd className="snapbill-meta-status-dd">
+                    <span className="snapbill-status-badge inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-center text-xs font-semibold leading-snug text-slate-800">
                       {statusLabel(invoice.status, language)}
                     </span>
                   </dd>
@@ -100,7 +103,7 @@ export function InvoicePreview() {
           </header>
 
           {/* FROM / TO row */}
-          <section className="my-6 flex items-start justify-between gap-8 border-y border-slate-100 py-6">
+          <section className="snapbill-print-avoid-break my-6 flex items-start justify-between gap-8 border-b border-slate-100 py-6 print:my-4 print:py-4">
             <div className="min-w-0 max-w-[48%] flex-1">
               <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 {preview.from}
@@ -147,7 +150,7 @@ export function InvoicePreview() {
           </section>
 
           {/* Line items — mobile */}
-          <ul className="space-y-2 md:hidden print:hidden">
+          <ul className="snapbill-line-items-mobile space-y-2 md:hidden print:hidden">
             {invoice.items.map((item) => {
               const lineTotal = lineTotalFromItem(
                 item.quantity,
@@ -195,7 +198,7 @@ export function InvoicePreview() {
           </ul>
 
           {/* Line items — desktop */}
-          <div className="hidden overflow-x-auto md:block print:block">
+          <div className="snapbill-line-items-desktop snapbill-print-avoid-break hidden overflow-x-auto md:block print:block">
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b border-slate-100 text-left text-xs font-bold uppercase tracking-wide text-slate-500">
@@ -205,7 +208,7 @@ export function InvoicePreview() {
                   <th className="py-2.5 text-right">{preview.lineTotal}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {invoice.items.map((item) => {
                   const lineTotal = lineTotalFromItem(
                     item.quantity,
@@ -238,35 +241,37 @@ export function InvoicePreview() {
           </div>
 
           {/* Totals */}
-          <div className="mt-6 ml-auto w-full max-w-xs space-y-2 border-t border-slate-100 pt-4 text-right text-sm">
-            <div className="flex justify-end gap-6 text-slate-600">
-              <span>{preview.subtotal}</span>
-              <span className="min-w-[7rem] tabular-nums font-medium text-slate-900">
+          <div className="snapbill-invoice-totals snapbill-print-avoid-break mt-6 ml-auto w-full max-w-xs space-y-2 pt-2 text-right text-sm print:mt-4">
+            <div className="snapbill-totals-row flex justify-end gap-6 text-slate-600">
+              <span className="snapbill-totals-label">{preview.subtotal}</span>
+              <span className="snapbill-totals-value min-w-[7rem] tabular-nums font-medium text-slate-900">
                 {formatInvoiceMoney(totals.subtotal)}
               </span>
             </div>
-            <div className="flex justify-end gap-6 text-slate-600">
-              <span>{preview.tax}</span>
-              <span className="min-w-[7rem] tabular-nums font-medium text-slate-900">
+            <div className="snapbill-totals-row flex justify-end gap-6 text-slate-600">
+              <span className="snapbill-totals-label">{preview.tax}</span>
+              <span className="snapbill-totals-value min-w-[7rem] tabular-nums font-medium text-slate-900">
                 {formatInvoiceMoney(totals.tax_amount)}
               </span>
             </div>
-            <div className="flex justify-end gap-6 text-slate-600">
-              <span>{preview.discount}</span>
-              <span className="min-w-[7rem] tabular-nums font-medium text-slate-900">
+            <div className="snapbill-totals-row flex justify-end gap-6 text-slate-600">
+              <span className="snapbill-totals-label">{preview.discount}</span>
+              <span className="snapbill-totals-value min-w-[7rem] tabular-nums font-medium text-slate-900">
                 −{formatInvoiceMoney(totals.discount_amount)}
               </span>
             </div>
-            <div className="flex justify-end gap-6 border-t border-slate-100 pt-3 text-base font-black text-slate-900">
-              <span className="uppercase tracking-tight">{preview.total}</span>
-              <span className="min-w-[7rem] tabular-nums text-indigo-600">
+            <div className="snapbill-totals-row snapbill-totals-row--total flex justify-end gap-6 border-t border-slate-100 pt-3 text-base font-black text-slate-900">
+              <span className="snapbill-totals-label uppercase tracking-tight">
+                {preview.total}
+              </span>
+              <span className="snapbill-totals-value min-w-[7rem] tabular-nums text-indigo-600">
                 {formatInvoiceMoney(totals.total_amount)}
               </span>
             </div>
           </div>
 
           {invoice.notes.trim() ? (
-            <section className="mt-8 border-t border-slate-100 pt-6">
+            <section className="snapbill-print-avoid-break mt-8 border-t border-slate-100 pt-6 print:mt-4">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 {preview.notes}
               </p>
