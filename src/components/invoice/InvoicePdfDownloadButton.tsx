@@ -37,7 +37,7 @@ function buildInvoicePdfFilename(invoice: Invoice): string {
 }
 
 export function InvoicePdfDownloadButton() {
-  const { invoice } = useInvoice();
+  const { invoice, labels } = useInvoice();
   const [busy, setBusy] = useState(false);
 
   const handleDownload = useCallback(async () => {
@@ -113,7 +113,9 @@ export function InvoicePdfDownloadButton() {
       aria-busy={busy}
     >
       <Download className="h-4 w-4" aria-hidden />
-      {busy ? "Preparing PDF…" : "Download PDF"}
+      {busy
+        ? labels.previewChrome.preparingPdf
+        : labels.previewChrome.downloadPdf}
     </button>
   );
 }

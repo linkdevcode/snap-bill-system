@@ -4,10 +4,11 @@ import type { DragEvent } from "react";
 import { useCallback, useRef, useState } from "react";
 import { CloudUpload, ImagePlus, Sparkles, X } from "lucide-react";
 
+import { InvoiceLocaleSelectors } from "@/components/invoice/InvoiceLocaleSelectors";
 import { LineItemsTable } from "@/components/invoice/LineItemsTable";
 import { useAuth } from "@/context/AuthContext";
 import { useInvoice } from "@/context/InvoiceContext";
-import { formatMoney } from "@/lib/money";
+import type { InvoiceStatus } from "@/types/invoice";
 
 const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 const ACCEPTED_MIME_TYPES = new Set(["image/png", "image/jpeg"]);
@@ -43,13 +44,18 @@ export function InvoiceEditor() {
   const {
     invoice,
     totals,
+    labels,
     cloudSave,
     isSavingInvoice,
     saveInvoice,
+    formatInvoiceMoney,
     updateSenderData,
     updateClientData,
     updateInvoiceMeta,
   } = useInvoice();
+
+  const t = labels.editor;
+  const p = labels.preview;
 
   const { session, loading, supabaseConfigured } = useAuth();
 
@@ -60,12 +66,12 @@ export function InvoiceEditor() {
   const [logoError, setLogoError] = useState<string | null>(null);
   const [isDraggingLogo, setIsDraggingLogo] = useState(false);
 
-  const statusOptions = [
-    { value: "draft", label: "Draft" },
-    { value: "sent", label: "Sent" },
-    { value: "paid", label: "Paid" },
-    { value: "overdue", label: "Overdue" },
-  ] as const;
+  const statusOptions: { value: InvoiceStatus; label: string }[] = (
+    ["draft", "sent", "paid", "overdue"] as const
+  ).map((value) => ({
+    value,
+    label: labels.statusLabels[value],
+  }));
 
   const ingestLogoFile = useCallback(
     async (file: File) => {
@@ -76,12 +82,12 @@ export function InvoiceEditor() {
         mime === "image/jpg" ? "image/jpeg" : mime;
 
       if (!ACCEPTED_MIME_TYPES.has(normalizedMime)) {
-        setLogoError("Please upload a PNG or JPG image.");
+        setLogoError(t.logoErrors.invalidType);
         return;
       }
 
       if (file.size > LOGO_MAX_BYTES) {
-        setLogoError("Logo must be 2 MB or smaller.");
+        setLogoError(t.logoErrors.tooLarge);
         return;
       }
 
@@ -89,10 +95,10 @@ export function InvoiceEditor() {
         const dataUrl = await readFileAsDataUrl(file);
         updateSenderData({ logo_url: dataUrl });
       } catch {
-        setLogoError("Could not read that image file.");
+        setLogoError(t.logoErrors.readFailed);
       }
     },
-    [updateSenderData],
+    [t.logoErrors, updateSenderData],
   );
 
   const onLogoInputChange = useCallback(
@@ -140,9 +146,12 @@ export function InvoiceEditor() {
   return (
     <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-700/80 dark:bg-slate-950">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">
-          Invoice details
-        </h2>
+        <div className="flex min-w-0 flex-col gap-2">
+          <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+            {t.title}
+          </h2>
+          <InvoiceLocaleSelectors />
+        </div>
 
         <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:items-end">
           <button
@@ -152,7 +161,7 @@ export function InvoiceEditor() {
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 dark:shadow-indigo-600/25"
           >
             <CloudUpload className="h-4 w-4" aria-hidden />
-            {isSavingInvoice ? "Saving…" : "Save to Cloud"}
+            {isSavingInvoice ? t.saving : t.saveToCloud}
           </button>
 
           {cloudSave.phase !== "idle" ? (
@@ -171,28 +180,35 @@ export function InvoiceEditor() {
 
           {!canCloudSave && supabaseConfigured ? (
             <p className="text-right text-[11px] leading-snug text-slate-500 dark:text-slate-400">
-              Đăng nhập để bật lưu đám mây.
+              {t.signInForCloud}
             </p>
           ) : null}
 
           {!supabaseConfigured ? (
             <p className="text-right text-[11px] leading-snug text-slate-500 dark:text-slate-400">
-              Cấu hình Supabase trong .env để lưu đám mây.
+              {t.configureSupabase}
             </p>
           ) : null}
         </div>
       </div>
 
+      {showGuestCallout ? (
+        <div className="mb-4 flex gap-2 rounded-lg border border-indigo-200/80 bg-indigo-50/80 px-3 py-2.5 text-xs leading-relaxed text-indigo-950 dark:border-indigo-500/30 dark:bg-indigo-950/40 dark:text-indigo-100">
+          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600 dark:text-indigo-400" aria-hidden />
+          <p>{t.guestCallout}</p>
+        </div>
+      ) : null}
+
       <fieldset className="space-y-3">
-        <legend className="sr-only">Sender</legend>
-        <p className={sectionTitleClass}>Sender</p>
+        <legend className="sr-only">{t.sender}</legend>
+        <p className={sectionTitleClass}>{t.sender}</p>
 
         <input
           ref={fileInputRef}
           type="file"
           accept=".png,.jpg,.jpeg,image/png,image/jpeg"
           className="sr-only"
-          aria-label="Upload company logo"
+          aria-label={t.uploadLogo}
           onChange={(e) => void onLogoInputChange(e.target.files)}
         />
 
@@ -225,7 +241,7 @@ export function InvoiceEditor() {
                   className="inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-red-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-red-400"
                 >
                   <X className="h-3 w-3" aria-hidden />
-                  Clear
+                  {t.clearLogo}
                 </button>
               </div>
             ) : (
@@ -240,10 +256,10 @@ export function InvoiceEditor() {
                   aria-hidden
                 />
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  Logo
+                  {t.logo}
                 </span>
                 <span className="text-[9px] leading-tight text-slate-400 dark:text-slate-500">
-                  PNG / JPG
+                  {t.logoFormats}
                 </span>
               </button>
             )}
@@ -258,48 +274,48 @@ export function InvoiceEditor() {
 
             <div className="grid gap-3 sm:grid-cols-2">
               <label className={fieldLabelClass}>
-                Company name
+                {t.companyName}
                 <input
                   className={fieldInputClass}
                   value={invoice.sender_data.company_name}
                   onChange={(e) =>
                     updateSenderData({ company_name: e.target.value })
                   }
-                  placeholder="Acme Studio"
+                  placeholder={t.placeholders.companyName}
                 />
               </label>
               <label className={fieldLabelClass}>
-                Sender name
+                {t.senderName}
                 <input
                   className={fieldInputClass}
                   value={invoice.sender_data.sender_name}
                   onChange={(e) =>
                     updateSenderData({ sender_name: e.target.value })
                   }
-                  placeholder="Your name"
+                  placeholder={t.placeholders.senderName}
                 />
               </label>
               <label className={fieldLabelClass}>
-                Email
+                {t.email}
                 <input
                   type="email"
                   className={fieldInputClass}
                   value={invoice.sender_data.email}
                   onChange={(e) => updateSenderData({ email: e.target.value })}
-                  placeholder="billing@company.com"
+                  placeholder={t.placeholders.email}
                 />
               </label>
               <label className={fieldLabelClass}>
-                Tax / VAT ID
+                {t.taxId}
                 <input
                   className={fieldInputClass}
                   value={invoice.sender_data.tax_id}
                   onChange={(e) => updateSenderData({ tax_id: e.target.value })}
-                  placeholder="Optional"
+                  placeholder={t.placeholders.taxId}
                 />
               </label>
               <label className={`sm:col-span-2 ${fieldLabelClass}`}>
-                Address
+                {t.address}
                 <textarea
                   rows={2}
                   className={`${fieldInputClass} resize-y`}
@@ -307,7 +323,7 @@ export function InvoiceEditor() {
                   onChange={(e) =>
                     updateSenderData({ address: e.target.value })
                   }
-                  placeholder="Street, city, postal code"
+                  placeholder={t.placeholders.address}
                 />
               </label>
             </div>
@@ -316,22 +332,22 @@ export function InvoiceEditor() {
       </fieldset>
 
       <fieldset className="mt-6 space-y-3">
-        <legend className="sr-only">Client</legend>
-        <p className={sectionTitleClass}>Client</p>
+        <legend className="sr-only">{t.client}</legend>
+        <p className={sectionTitleClass}>{t.client}</p>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className={fieldLabelClass}>
-            Client name
+            {t.clientName}
             <input
               className={fieldInputClass}
               value={invoice.client_data.client_name}
               onChange={(e) =>
                 updateClientData({ client_name: e.target.value })
               }
-              placeholder="Client or company"
+              placeholder={t.placeholders.clientName}
             />
           </label>
           <label className={fieldLabelClass}>
-            Client email
+            {t.clientEmail}
             <input
               type="email"
               className={fieldInputClass}
@@ -339,11 +355,11 @@ export function InvoiceEditor() {
               onChange={(e) =>
                 updateClientData({ client_email: e.target.value })
               }
-              placeholder="accounts@client.com"
+              placeholder={t.placeholders.clientEmail}
             />
           </label>
           <label className={`sm:col-span-2 ${fieldLabelClass}`}>
-            Billing address
+            {t.billingAddress}
             <textarea
               rows={2}
               className={`${fieldInputClass} resize-y`}
@@ -351,29 +367,29 @@ export function InvoiceEditor() {
               onChange={(e) =>
                 updateClientData({ client_address: e.target.value })
               }
-              placeholder="Billing address"
+              placeholder={t.placeholders.billingAddress}
             />
           </label>
         </div>
       </fieldset>
 
       <fieldset className="mt-6 space-y-3">
-        <legend className="sr-only">Invoice meta</legend>
-        <p className={sectionTitleClass}>Invoice</p>
+        <legend className="sr-only">{t.invoiceSection}</legend>
+        <p className={sectionTitleClass}>{t.invoiceSection}</p>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className={fieldLabelClass}>
-            Invoice number
+            {t.invoiceNumber}
             <input
               className={fieldInputClass}
               value={invoice.invoice_number}
               onChange={(e) =>
                 updateInvoiceMeta({ invoice_number: e.target.value })
               }
-              placeholder="INV-001"
+              placeholder={t.placeholders.invoiceNumber}
             />
           </label>
           <label className={fieldLabelClass}>
-            Status
+            {t.status}
             <select
               className={fieldInputClass}
               value={invoice.status}
@@ -391,7 +407,7 @@ export function InvoiceEditor() {
             </select>
           </label>
           <label className={fieldLabelClass}>
-            Issue date
+            {t.issueDate}
             <input
               type="date"
               className={fieldInputClass}
@@ -402,7 +418,7 @@ export function InvoiceEditor() {
             />
           </label>
           <label className={fieldLabelClass}>
-            Due date
+            {t.dueDate}
             <input
               type="date"
               className={fieldInputClass}
@@ -413,7 +429,7 @@ export function InvoiceEditor() {
             />
           </label>
           <label className={fieldLabelClass}>
-            Tax rate (%)
+            {t.taxRate}
             <input
               type="number"
               min={0}
@@ -429,7 +445,7 @@ export function InvoiceEditor() {
             />
           </label>
           <label className={fieldLabelClass}>
-            Discount (%)
+            {t.discountRate}
             <input
               type="number"
               min={0}
@@ -451,41 +467,45 @@ export function InvoiceEditor() {
         </div>
       </fieldset>
 
+      <div className="mt-6">
+        <LineItemsTable />
+      </div>
+
       <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900/60">
         <div className="flex justify-between gap-4 py-1.5 text-sm">
-          <span className="text-slate-600 dark:text-slate-400">Subtotal</span>
+          <span className="text-slate-600 dark:text-slate-400">{p.subtotal}</span>
           <span className="tabular-nums font-medium text-slate-900 dark:text-slate-100">
-            {formatMoney(totals.subtotal)}
+            {formatInvoiceMoney(totals.subtotal)}
           </span>
         </div>
         <div className="flex justify-between gap-4 py-1.5 text-sm">
-          <span className="text-slate-600 dark:text-slate-400">Tax</span>
+          <span className="text-slate-600 dark:text-slate-400">{p.tax}</span>
           <span className="tabular-nums font-medium text-slate-900 dark:text-slate-100">
-            {formatMoney(totals.tax_amount)}
+            {formatInvoiceMoney(totals.tax_amount)}
           </span>
         </div>
         <div className="flex justify-between gap-4 py-1.5 text-sm">
-          <span className="text-slate-600 dark:text-slate-400">Discount</span>
+          <span className="text-slate-600 dark:text-slate-400">{p.discount}</span>
           <span className="tabular-nums font-medium text-slate-900 dark:text-slate-100">
-            −{formatMoney(totals.discount_amount)}
+            −{formatInvoiceMoney(totals.discount_amount)}
           </span>
         </div>
         <div className="mt-2 flex justify-between gap-4 border-t border-slate-100 pt-2 text-lg font-black text-slate-900 dark:border-slate-800 dark:text-slate-50">
-          <span className="uppercase tracking-tight">TỔNG:</span>
+          <span className="uppercase tracking-tight">{p.total}:</span>
           <span className="tabular-nums text-indigo-600 dark:text-indigo-400">
-            {formatMoney(totals.total_amount)}
+            {formatInvoiceMoney(totals.total_amount)}
           </span>
         </div>
       </div>
 
       <label className={`mt-6 ${fieldLabelClass}`}>
-        Notes / payment terms
+        {t.notesPayment}
         <textarea
           rows={4}
           className={`${fieldInputClass} resize-y`}
           value={invoice.notes}
           onChange={(e) => updateInvoiceMeta({ notes: e.target.value })}
-          placeholder="Bank details, thank-you message, or payment instructions."
+          placeholder={t.placeholders.notes}
         />
       </label>
     </div>

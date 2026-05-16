@@ -5,6 +5,12 @@ import type {
   LineItem,
   SenderData,
 } from "@/types/invoice";
+import {
+  parseInvoiceCurrency,
+  parseInvoiceLanguage,
+  type InvoiceCurrency,
+  type InvoiceLanguage,
+} from "@/types/locale";
 import { roundCurrency } from "@/lib/money";
 
 export interface InvoiceDbRow {
@@ -22,6 +28,8 @@ export interface InvoiceDbRow {
   subtotal: number | string | null;
   total_amount: number | string | null;
   notes: string | null;
+  language: InvoiceLanguage;
+  currency: InvoiceCurrency;
   created_at: string;
 }
 
@@ -143,6 +151,8 @@ export function normalizeInvoiceRow(raw: Record<string, unknown>): InvoiceDbRow 
     subtotal: raw.subtotal as InvoiceDbRow["subtotal"],
     total_amount: raw.total_amount as InvoiceDbRow["total_amount"],
     notes: typeof raw.notes === "string" ? raw.notes : null,
+    language: parseInvoiceLanguage(raw.language),
+    currency: parseInvoiceCurrency(raw.currency),
     created_at:
       typeof raw.created_at === "string"
         ? raw.created_at

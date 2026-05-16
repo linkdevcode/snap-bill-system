@@ -13,9 +13,16 @@ import {
 } from "@/lib/invoice-db";
 import { formatMoney } from "@/lib/money";
 import type { InvoiceStatus } from "@/types/invoice";
+import { statusLabel } from "@/utils/translations";
 import { getSupabaseBrowserClient } from "@/utils/supabase/client";
 
-function StatusBadge({ status }: { status: InvoiceStatus }) {
+function StatusBadge({
+  status,
+  language,
+}: {
+  status: InvoiceStatus;
+  language: "vi" | "en";
+}) {
   const styles: Record<InvoiceStatus, string> = {
     draft:
       "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-warm-cream-100",
@@ -27,19 +34,20 @@ function StatusBadge({ status }: { status: InvoiceStatus }) {
 
   return (
     <span
-      className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold capitalize ${styles[status]}`}
+      className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${styles[status]}`}
     >
-      {status}
+      {statusLabel(status, language)}
     </span>
   );
 }
 
-function formatCreatedAt(iso: string): string {
+function formatCreatedAt(iso: string, language: "vi" | "en"): string {
   const t = Date.parse(iso);
   if (!Number.isFinite(t)) {
     return "—";
   }
-  return new Intl.DateTimeFormat(undefined, {
+  const locale = language === "vi" ? "vi-VN" : "en-US";
+  return new Intl.DateTimeFormat(locale, {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -59,8 +67,10 @@ export interface InvoiceDashboardProps {
 
 export function InvoiceDashboard({ onSwitchToEditor }: InvoiceDashboardProps) {
   const { user, supabaseConfigured } = useAuth();
-  const { hydrateInvoiceFromRemoteRow, resetInvoiceDraft, invoice } =
+  const { hydrateInvoiceFromRemoteRow, resetInvoiceDraft, invoice, language, labels } =
     useInvoice();
+
+  const d = labels.dashboard;
 
   const userId = user?.id ?? null;
 
@@ -185,20 +195,20 @@ export function InvoiceDashboard({ onSwitchToEditor }: InvoiceDashboardProps) {
 
   const emptyState = useMemo(() => {
     if (!supabaseConfigured || !userId) {
-      return "Sign in with Supabase configured to load saved invoices.";
+      return d.emptyNotConfigured;
     }
-    return "No invoices yet. Save one from the editor with “Save to Cloud”.";
-  }, [supabaseConfigured, userId]);
+    return d.emptyNoInvoices;
+  }, [d.emptyNoInvoices, d.emptyNotConfigured, supabaseConfigured, userId]);
 
   return (
     <div className="rounded-xl border border-tech-slate-800/10 bg-white p-5 shadow-sm dark:border-warm-cream-200/10 dark:bg-tech-slate-900">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold tracking-tight text-tech-slate-900 dark:text-warm-cream-50">
-            My Invoices
+            {d.title}
           </h2>
           <p className="mt-1 text-xs text-tech-slate-600 dark:text-warm-cream-300">
-            Manage saved invoices from the cloud.
+            {d.subtitle}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -207,7 +217,7 @@ export function InvoiceDashboard({ onSwitchToEditor }: InvoiceDashboardProps) {
             onClick={() => void loadRows()}
             className="rounded-lg border border-tech-slate-200 bg-white px-3 py-2 text-xs font-semibold text-tech-slate-800 hover:bg-tech-slate-50 dark:border-tech-slate-700 dark:bg-tech-slate-950 dark:text-warm-cream-50 dark:hover:bg-tech-slate-800"
           >
-            Refresh
+            {d.refresh}
           </button>
           <button
             type="button"
@@ -217,7 +227,7 @@ export function InvoiceDashboard({ onSwitchToEditor }: InvoiceDashboardProps) {
             }}
             className="rounded-lg bg-tech-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-tech-slate-800 dark:bg-warm-cream-100 dark:text-tech-slate-950 dark:hover:bg-warm-cream-200"
           >
-            New invoice
+            {d.newInvoice}
           </button>
         </div>
       </div>
@@ -235,12 +245,12 @@ export function InvoiceDashboard({ onSwitchToEditor }: InvoiceDashboardProps) {
         <table className="min-w-[720px] w-full border-collapse text-sm">
           <thead className="bg-tech-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-tech-slate-600 dark:bg-tech-slate-950 dark:text-warm-cream-300">
             <tr>
-              <th className="px-3 py-2">Invoice #</th>
-              <th className="px-3 py-2">Client</th>
-              <th className="px-3 py-2 text-right">Total</th>
-              <th className="px-3 py-2">Created</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2 text-right">Actions</th>
+              <th className="px-3 py-2">{d.invoiceNumber}</th>
+              <th className="px-3 py-2">{d.client}</th>
+              <th className="px-3 py-2 text-right">{d.total}</th>
+              <th className="px-3 py-2">{d.created}</th>
+              <th className="px-3 py-2">{d.status}</th>
+              <th className="px-3 py-2 text-right">{d.actions}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-tech-slate-100 dark:divide-tech-slate-800">
@@ -249,7 +259,7 @@ export function InvoiceDashboard({ onSwitchToEditor }: InvoiceDashboardProps) {
                 <td className="px-3 py-10 text-center" colSpan={6}>
                   <span className="inline-flex items-center gap-2 text-sm text-tech-slate-600 dark:text-warm-cream-300">
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                    Loading invoices…
+                    {d.loading}
                   </span>
                 </td>
               </tr>
@@ -281,18 +291,19 @@ export function InvoiceDashboard({ onSwitchToEditor }: InvoiceDashboardProps) {
                     </td>
                     <td className="px-3 py-3">{displayName}</td>
                     <td className="px-3 py-3 text-right tabular-nums font-medium">
-                      {formatMoney(total)}
+                      {formatMoney(total, row.currency)}
                     </td>
                     <td className="px-3 py-3 tabular-nums text-tech-slate-700 dark:text-warm-cream-200">
-                      {formatCreatedAt(row.created_at)}
+                      {formatCreatedAt(row.created_at, language)}
                     </td>
                     <td className="px-3 py-3">
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         <StatusBadge
                           status={parseInvoiceStatus(row.status)}
+                          language={language}
                         />
                         <label className="sr-only" htmlFor={`status-${row.id}`}>
-                          Change status for {row.invoice_number}
+                          {d.changeStatus}: {row.invoice_number}
                         </label>
                         <select
                           id={`status-${row.id}`}
@@ -306,7 +317,7 @@ export function InvoiceDashboard({ onSwitchToEditor }: InvoiceDashboardProps) {
                         >
                           {STATUS_OPTIONS.map((opt) => (
                             <option key={opt} value={opt}>
-                              {opt}
+                              {statusLabel(opt, language)}
                             </option>
                           ))}
                         </select>
@@ -319,7 +330,7 @@ export function InvoiceDashboard({ onSwitchToEditor }: InvoiceDashboardProps) {
                           onClick={() => handleEdit(row)}
                           disabled={busyId === row.id}
                           className="rounded p-2 text-tech-slate-600 hover:bg-tech-slate-100 hover:text-tech-slate-900 disabled:opacity-50 dark:text-warm-cream-300 dark:hover:bg-tech-slate-800 dark:hover:text-warm-cream-50"
-                          aria-label={`Edit invoice ${row.invoice_number}`}
+                          aria-label={`${d.editInvoice} ${row.invoice_number}`}
                         >
                           <FilePenLine className="h-4 w-4" aria-hidden />
                         </button>
@@ -328,7 +339,7 @@ export function InvoiceDashboard({ onSwitchToEditor }: InvoiceDashboardProps) {
                           onClick={() => void handleDelete(row)}
                           disabled={busyId === row.id}
                           className="rounded p-2 text-tech-slate-600 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:text-warm-cream-300 dark:hover:bg-red-900/30 dark:hover:text-red-200"
-                          aria-label={`Delete invoice ${row.invoice_number}`}
+                          aria-label={`${d.deleteInvoice} ${row.invoice_number}`}
                         >
                           <Trash2 className="h-4 w-4" aria-hidden />
                         </button>

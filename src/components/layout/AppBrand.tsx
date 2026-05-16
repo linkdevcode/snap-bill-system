@@ -1,7 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { FileText } from "lucide-react";
 
+import { useInvoice } from "@/context/InvoiceContext";
+
 export function AppBrand() {
+  const { labels } = useInvoice();
+
   return (
     <Link
       href="/"
@@ -16,7 +22,7 @@ export function AppBrand() {
             SnapBill
           </span>
           <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400">
-            Miễn phí
+            {labels.brand.freeTag}
           </span>
         </span>
       </span>

@@ -2,30 +2,19 @@
 
 import { InvoicePdfDownloadButton } from "@/components/invoice/InvoicePdfDownloadButton";
 import { useInvoice } from "@/context/InvoiceContext";
-import { formatMoney, lineTotalFromItem } from "@/lib/money";
-
-function formatDisplayDate(isoDate: string): string {
-  const parsed = Date.parse(`${isoDate}T00:00:00`);
-  if (!Number.isFinite(parsed)) {
-    return isoDate;
-  }
-  return new Intl.DateTimeFormat(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(new Date(parsed));
-}
+import { lineTotalFromItem } from "@/lib/money";
+import { formatInvoiceDate, statusLabel } from "@/utils/translations";
 
 export function InvoicePreview() {
-  const { invoice, totals } = useInvoice();
-
+  const { invoice, totals, language, labels, formatInvoiceMoney } = useInvoice();
+  const preview = labels.preview;
   const logoSrc = invoice.sender_data.logo_url.trim();
 
   return (
     <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-700/80 dark:bg-slate-900 lg:sticky lg:top-6 lg:self-start">
       <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Live preview
+          {labels.previewChrome.livePreview}
         </p>
         <InvoicePdfDownloadButton />
       </div>
@@ -34,7 +23,8 @@ export function InvoicePreview() {
         <section
           id="invoice-paper"
           className="relative box-border min-h-[842px] w-full max-w-[595px] shrink-0 bg-white p-10 text-slate-900 shadow-[0_1px_3px_rgba(15,23,42,0.12)] ring-1 ring-black/5 print:border-0 print:shadow-none print:ring-0"
-          aria-label="Invoice preview sheet"
+          aria-label={labels.previewChrome.previewAria}
+          lang={language}
         >
           <header className="flex flex-col gap-6 border-b border-slate-200 pb-6 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
@@ -51,11 +41,11 @@ export function InvoicePreview() {
 
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
-                  Invoice
+                  {preview.invoice}
                 </p>
                 <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
                   {invoice.sender_data.company_name.trim() ||
-                    "Your company name"}
+                    preview.defaultCompany}
                 </h1>
                 <p className="mt-1 text-sm text-slate-700">
                   {invoice.sender_data.sender_name}
@@ -71,7 +61,7 @@ export function InvoicePreview() {
                   ) : null}
                   {invoice.sender_data.tax_id ? (
                     <p className="text-slate-600">
-                      Tax / VAT: {invoice.sender_data.tax_id}
+                      {preview.taxVat}: {invoice.sender_data.tax_id}
                     </p>
                   ) : null}
                 </div>
@@ -81,7 +71,7 @@ export function InvoicePreview() {
             <dl className="grid gap-2 text-sm text-slate-800 sm:text-right">
               <div className="flex flex-col gap-0.5 sm:items-end">
                 <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                  Invoice #
+                  {preview.invoiceNumber}
                 </dt>
                 <dd className="font-semibold tabular-nums text-slate-900">
                   {invoice.invoice_number || "—"}
@@ -89,26 +79,26 @@ export function InvoicePreview() {
               </div>
               <div className="flex flex-col gap-0.5 sm:items-end">
                 <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                  Status
+                  {preview.status}
                 </dt>
-                <dd className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold capitalize text-slate-800">
-                  {invoice.status}
+                <dd className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-800">
+                  {statusLabel(invoice.status, language)}
                 </dd>
               </div>
               <div className="flex flex-col gap-0.5 sm:items-end">
                 <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                  Issue date
+                  {preview.issueDate}
                 </dt>
                 <dd className="tabular-nums">
-                  {formatDisplayDate(invoice.issue_date)}
+                  {formatInvoiceDate(invoice.issue_date, language)}
                 </dd>
               </div>
               <div className="flex flex-col gap-0.5 sm:items-end">
                 <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                  Due date
+                  {preview.dueDate}
                 </dt>
                 <dd className="tabular-nums">
-                  {formatDisplayDate(invoice.due_date)}
+                  {formatInvoiceDate(invoice.due_date, language)}
                 </dd>
               </div>
             </dl>
@@ -117,10 +107,10 @@ export function InvoicePreview() {
           <section className="mt-6 grid gap-6 border-b border-slate-200 pb-6 sm:grid-cols-2">
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                Bill to
+                {preview.billTo}
               </p>
               <p className="mt-2 text-lg font-semibold text-slate-900">
-                {invoice.client_data.client_name.trim() || "Client name"}
+                {invoice.client_data.client_name.trim() || preview.defaultClient}
               </p>
               <div className="mt-2 space-y-1 text-sm text-slate-700">
                 {invoice.client_data.client_email ? (
@@ -135,10 +125,10 @@ export function InvoicePreview() {
             </div>
             <div className="text-right sm:text-right">
               <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                Amount due
+                {preview.amountDue}
               </p>
               <p className="mt-2 text-3xl font-bold tabular-nums text-indigo-600">
-                {formatMoney(totals.total_amount)}
+                {formatInvoiceMoney(totals.total_amount)}
               </p>
             </div>
           </section>
@@ -147,10 +137,10 @@ export function InvoicePreview() {
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
-                  <th className="py-2 pr-4">Description</th>
-                  <th className="py-2 pr-4 text-right">Qty</th>
-                  <th className="py-2 pr-4 text-right">Unit</th>
-                  <th className="py-2 text-right">Total</th>
+                  <th className="py-2 pr-4">{preview.description}</th>
+                  <th className="py-2 pr-4 text-right">{preview.qty}</th>
+                  <th className="py-2 pr-4 text-right">{preview.unit}</th>
+                  <th className="py-2 text-right">{preview.lineTotal}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -160,7 +150,7 @@ export function InvoicePreview() {
                     item.unit_price,
                   );
                   const label =
-                    item.description.trim() || "Line item description";
+                    item.description.trim() || preview.defaultLineItem;
                   return (
                     <tr
                       key={item.id}
@@ -173,10 +163,10 @@ export function InvoicePreview() {
                         {item.quantity}
                       </td>
                       <td className="py-3 pr-4 text-right tabular-nums">
-                        {formatMoney(item.unit_price)}
+                        {formatInvoiceMoney(item.unit_price)}
                       </td>
                       <td className="py-3 text-right tabular-nums font-semibold text-slate-900">
-                        {formatMoney(lineTotal)}
+                        {formatInvoiceMoney(lineTotal)}
                       </td>
                     </tr>
                   );
@@ -187,27 +177,27 @@ export function InvoicePreview() {
 
           <div className="mt-6 ml-auto w-full max-w-xs space-y-2 text-right text-sm">
             <div className="flex justify-end gap-6 text-slate-700">
-              <span>Subtotal</span>
+              <span>{preview.subtotal}</span>
               <span className="tabular-nums font-medium text-slate-900">
-                {formatMoney(totals.subtotal)}
+                {formatInvoiceMoney(totals.subtotal)}
               </span>
             </div>
             <div className="flex justify-end gap-6 text-slate-700">
-              <span>Tax</span>
+              <span>{preview.tax}</span>
               <span className="tabular-nums font-medium text-slate-900">
-                {formatMoney(totals.tax_amount)}
+                {formatInvoiceMoney(totals.tax_amount)}
               </span>
             </div>
             <div className="flex justify-end gap-6 text-slate-700">
-              <span>Discount</span>
+              <span>{preview.discount}</span>
               <span className="tabular-nums font-medium text-slate-900">
-                −{formatMoney(totals.discount_amount)}
+                −{formatInvoiceMoney(totals.discount_amount)}
               </span>
             </div>
             <div className="flex justify-end gap-6 border-t border-slate-100 pt-2 text-lg font-black text-slate-900">
-              <span className="uppercase tracking-tight">TỔNG:</span>
+              <span className="uppercase tracking-tight">{preview.total}:</span>
               <span className="tabular-nums text-indigo-600">
-                {formatMoney(totals.total_amount)}
+                {formatInvoiceMoney(totals.total_amount)}
               </span>
             </div>
           </div>
@@ -215,7 +205,7 @@ export function InvoicePreview() {
           {invoice.notes.trim() ? (
             <section className="mt-8 border-t border-slate-200 pt-6">
               <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                Notes
+                {preview.notes}
               </p>
               <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
                 {invoice.notes}

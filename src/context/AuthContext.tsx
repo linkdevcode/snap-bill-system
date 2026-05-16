@@ -16,6 +16,7 @@ import {
   getSupabaseBrowserClient,
   isSupabaseConfigured,
 } from "@/utils/supabase/client";
+import { getAppLabels, readStoredInterfaceLanguage } from "@/utils/translations";
 
 function mapUserToSession(user: User): UserSession {
   const meta = user.user_metadata as Record<string, unknown>;
@@ -166,18 +167,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const sendEmailOtp = useCallback(
     async (email: string) => {
+      const authLabels = getAppLabels(readStoredInterfaceLanguage()).auth;
       const trimmed = email.trim();
       if (!trimmed) {
-        setAuthErrorBanner("Vui lòng nhập địa chỉ email.");
+        setAuthErrorBanner(authLabels.errors.emailRequired);
         return false;
       }
 
       const client = getSupabaseBrowserClient();
       if (!client) {
         console.warn("[SnapBill] sendEmailOtp: Supabase client not configured.");
-        setAuthErrorBanner(
-          "Chưa cấu hình Supabase. Thêm khóa dự án vào .env để đăng nhập.",
-        );
+        setAuthErrorBanner(authLabels.errors.supabaseNotConfigured);
         return false;
       }
 
@@ -201,22 +201,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const verifyEmailOtp = useCallback(
     async (email: string, token: string) => {
+      const authLabels = getAppLabels(readStoredInterfaceLanguage()).auth;
       const trimmedEmail = email.trim();
       const digits = token.replace(/\D/g, "");
 
       if (!trimmedEmail) {
-        setAuthErrorBanner("Thiếu email. Vui lòng gửi mã lại.");
+        setAuthErrorBanner(authLabels.errors.emailMissingForOtp);
         return false;
       }
 
       if (digits.length !== 6) {
-        setAuthErrorBanner("Mã OTP phải gồm đúng 6 chữ số.");
+        setAuthErrorBanner(authLabels.errors.otpInvalid);
         return false;
       }
 
       const client = getSupabaseBrowserClient();
       if (!client) {
-        setAuthErrorBanner("Chưa cấu hình Supabase.");
+        setAuthErrorBanner(authLabels.errors.supabaseNotConfiguredShort);
         return false;
       }
 

@@ -19,7 +19,7 @@ import {
   parseItemsJsonbToLineItems,
   parseSenderData,
 } from "@/lib/invoice-db";
-import { lineTotalFromItem, roundCurrency } from "@/lib/money";
+import { formatMoney, lineTotalFromItem, roundCurrency } from "@/lib/money";
 import type {
   ClientData,
   Invoice,
@@ -28,6 +28,14 @@ import type {
   LineItem,
   SenderData,
 } from "@/types/invoice";
+import type { InvoiceCurrency, InvoiceLanguage } from "@/types/locale";
+import {
+  INVOICE_LANGUAGE_STORAGE_KEY,
+  parseInvoiceCurrency,
+  parseInvoiceLanguage,
+} from "@/types/locale";
+import { readStoredInterfaceLanguage } from "@/utils/translations";
+import { getAppLabels, type AppLabels } from "@/utils/translations";
 import { getSupabaseBrowserClient } from "@/utils/supabase/client";
 
 export interface InvoiceTotals {
@@ -58,10 +66,18 @@ interface InvoiceDbPayload {
   subtotal: number;
   total_amount: number;
   notes: string;
+  language: InvoiceLanguage;
+  currency: InvoiceCurrency;
 }
 
 export interface InvoiceContextValue {
   invoice: Invoice;
+  language: InvoiceLanguage;
+  currency: InvoiceCurrency;
+  labels: AppLabels;
+  setLanguage: (language: InvoiceLanguage) => void;
+  setCurrency: (currency: InvoiceCurrency) => void;
+  formatInvoiceMoney: (amount: number) => string;
   totals: InvoiceTotals;
   cloudSave: CloudSaveBanner;
   isSavingInvoice: boolean;
@@ -149,6 +165,22 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
     () => createDefaultInvoice(),
   );
 
+  const [language, setLanguageState] = useState<InvoiceLanguage>(() =>
+    readStoredInterfaceLanguage(),
+  );
+  const [currency, setCurrency] = useState<InvoiceCurrency>("VND");
+
+  const setLanguage = useCallback((next: InvoiceLanguage) => {
+    setLanguageState(next);
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem(INVOICE_LANGUAGE_STORAGE_KEY, next);
+      } catch {
+        /* ignore quota / private mode */
+      }
+    }
+  }, []);
+
   const [cloudSave, setCloudSave] = useState<CloudSaveBanner>({
     phase: "idle",
     message: "",
@@ -210,14 +242,21 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
     [base, totals.subtotal, totals.total_amount],
   );
 
+  const labels = useMemo(() => getAppLabels(language), [language]);
+
+  const formatInvoiceMoney = useCallback(
+    (amount: number) => formatMoney(amount, currency),
+    [currency],
+  );
+
   const saveInvoice = useCallback(async () => {
+    const t = getAppLabels(language);
     const client = getSupabaseBrowserClient();
 
     if (!supabaseConfigured || !client) {
       setCloudSave({
         phase: "error",
-        message:
-          "Supabase chưa được cấu hình. Thêm NEXT_PUBLIC_SUPABASE_URL và NEXT_PUBLIC_SUPABASE_ANON_KEY vào .env.local.",
+        message: t.cloudSave.notConfigured,
       });
       scheduleDismissBanner();
       return;
@@ -226,7 +265,7 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
     if (!userId) {
       setCloudSave({
         phase: "error",
-        message: "Đăng nhập để lưu hóa đơn lên đám mây.",
+        message: t.cloudSave.signInRequired,
       });
       scheduleDismissBanner();
       return;
@@ -236,7 +275,7 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
 
     setCloudSave({
       phase: "success",
-      message: "Đang đồng bộ với Supabase…",
+      message: t.cloudSave.syncing,
     });
 
     const payload: InvoiceDbPayload = {
@@ -253,6 +292,8 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
       subtotal: roundCurrency(totals.subtotal),
       total_amount: roundCurrency(totals.total_amount),
       notes: invoice.notes,
+      language,
+      currency,
     };
 
     try {
@@ -269,7 +310,7 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
 
         setCloudSave({
           phase: "success",
-          message: "Đã cập nhật hóa đơn trên Supabase.",
+          message: t.cloudSave.updated,
         });
       } else {
         const { data, error } = await client
@@ -296,7 +337,7 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
 
         setCloudSave({
           phase: "success",
-          message: "Đã lưu hóa đơn mới lên Supabase.",
+          message: t.cloudSave.created,
         });
       }
 
@@ -305,7 +346,7 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
       const message =
         unknownError instanceof Error
           ? unknownError.message
-          : "Không thể lưu hóa đơn lên Supabase.";
+          : t.cloudSave.failed;
 
       setCloudSave({
         phase: "error",
@@ -328,6 +369,8 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
     invoice.status,
     invoice.tax_rate,
     invoice.discount_rate,
+    currency,
+    language,
     scheduleDismissBanner,
     supabaseConfigured,
     totals.subtotal,
@@ -420,15 +463,25 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
       discount_rate: roundCurrency(Number(row.discount_rate ?? 0)),
       notes: row.notes ?? "",
     });
-  }, []);
+    setLanguage(parseInvoiceLanguage(row.language));
+    setCurrency(parseInvoiceCurrency(row.currency));
+  }, [setLanguage]);
 
   const resetInvoiceDraft = useCallback(() => {
     setBase(createDefaultInvoice());
-  }, []);
+    setLanguage("vi");
+    setCurrency("VND");
+  }, [setLanguage]);
 
   const value = useMemo<InvoiceContextValue>(
     () => ({
       invoice,
+      language,
+      currency,
+      labels,
+      setLanguage,
+      setCurrency,
+      formatInvoiceMoney,
       totals,
       cloudSave,
       isSavingInvoice,
@@ -444,6 +497,10 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
     }),
     [
       invoice,
+      language,
+      currency,
+      labels,
+      formatInvoiceMoney,
       totals,
       cloudSave,
       isSavingInvoice,
@@ -456,6 +513,7 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
       deleteItem,
       hydrateInvoiceFromRemoteRow,
       resetInvoiceDraft,
+      setLanguage,
     ],
   );
 

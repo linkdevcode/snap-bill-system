@@ -8,6 +8,7 @@ import { AdSlot } from "@/components/invoice/AdSlot";
 import { AppBrand } from "@/components/layout/AppBrand";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useAuth } from "@/context/AuthContext";
+import { useInvoice } from "@/context/InvoiceContext";
 import type { WorkspaceView } from "@/types/workspace";
 
 export interface SiteHeaderProps {
@@ -34,6 +35,7 @@ export function SiteHeader({
 }: SiteHeaderProps) {
   const pathname = usePathname();
   const { session, loading } = useAuth();
+  const { labels } = useInvoice();
   const topSlotId = process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP ?? "";
 
   const isDocs = pathname === "/docs";
@@ -71,7 +73,7 @@ export function SiteHeader({
 
           <nav
             className="order-3 flex w-full flex-wrap items-center justify-center gap-1 sm:order-2 sm:w-auto sm:flex-1 sm:justify-center"
-            aria-label="Điều hướng chính"
+            aria-label={labels.nav.mainNav}
           >
             <button
               type="button"
@@ -80,7 +82,7 @@ export function SiteHeader({
               )}
               onClick={handleEditorNav}
             >
-              Trình tạo
+              {labels.nav.editor}
             </button>
             <button
               type="button"
@@ -89,10 +91,10 @@ export function SiteHeader({
               )}
               onClick={handleInvoicesNav}
             >
-              Hóa đơn của tôi
+              {labels.nav.myInvoices}
             </button>
             <Link href="/docs" className={navLinkClass(isDocs)}>
-              Tài liệu
+              {labels.nav.docs}
             </Link>
           </nav>
 

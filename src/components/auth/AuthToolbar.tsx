@@ -4,6 +4,8 @@ import { useCallback, useEffect, useId, useState, type MouseEvent } from "react"
 import { KeyRound, LogOut, User, X } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
+import { useInvoice } from "@/context/InvoiceContext";
+import { formatAuthOtpHint } from "@/utils/translations";
 
 const modalLabelClass =
   "block text-xs font-bold uppercase text-slate-500 dark:text-slate-400";
@@ -56,9 +58,11 @@ function initialsFromSession(
 function SignInModal({
   open,
   onClose,
+  auth: a,
 }: {
   open: boolean;
   onClose: () => void;
+  auth: ReturnType<typeof useInvoice>["labels"]["auth"];
 }) {
   const titleId = useId();
   const {
@@ -174,19 +178,19 @@ function SignInModal({
               id={titleId}
               className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50"
             >
-              Đăng nhập SnapBill
+              {a.signInTitle}
             </h2>
             <p className="mt-1 text-xs leading-snug text-slate-500 dark:text-slate-400">
               {step === "email"
-                ? "Nhập email để nhận mã OTP 6 số—không cần mật khẩu."
-                : `Mã đã gửi tới ${maskEmailHint(email)}. Nhập 6 số trong email.`}
+                ? a.emailStepHint
+                : formatAuthOtpHint(a.otpStepHint, maskEmailHint(email))}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-            aria-label="Đóng"
+            aria-label={a.close}
           >
             <X className="h-4 w-4" aria-hidden />
           </button>
@@ -203,7 +207,7 @@ function SignInModal({
               className="mt-2 text-xs font-semibold underline decoration-red-400/60 underline-offset-2"
               onClick={clearAuthErrorBanner}
             >
-              Đóng thông báo
+              {a.dismissError}
             </button>
           </div>
         ) : null}
@@ -211,7 +215,7 @@ function SignInModal({
         {step === "email" ? (
           <div className="space-y-3">
             <label className={modalLabelClass}>
-              Email
+              {a.emailLabel}
               <input
                 type="email"
                 name="email"
@@ -225,7 +229,7 @@ function SignInModal({
                     void handleSendCode();
                   }
                 }}
-                placeholder="ban@congty.com"
+                placeholder={a.emailPlaceholder}
                 className={modalInputClass}
               />
             </label>
@@ -236,13 +240,13 @@ function SignInModal({
               onClick={() => void handleSendCode()}
               className={modalPrimaryClass}
             >
-              {sendingCode ? "Đang gửi…" : "Gửi mã xác thực"}
+              {sendingCode ? a.sendingCode : a.sendCode}
             </button>
           </div>
         ) : (
           <div className="space-y-3">
             <label className={modalLabelClass}>
-              Mã OTP (6 chữ số)
+              {a.otpLabel}
               <input
                 type="text"
                 name="otp"
@@ -270,7 +274,7 @@ function SignInModal({
               className={modalPrimaryClass}
             >
               <KeyRound className="h-4 w-4" aria-hidden />
-              {verifying ? "Đang xác nhận…" : "Xác nhận Đăng nhập"}
+              {verifying ? a.verifying : a.verify}
             </button>
 
             <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
@@ -283,7 +287,7 @@ function SignInModal({
                   clearAuthErrorBanner();
                 }}
               >
-                Đổi email
+                {a.changeEmail}
               </button>
               <button
                 type="button"
@@ -291,7 +295,7 @@ function SignInModal({
                 disabled={!supabaseConfigured || sendingCode}
                 onClick={() => void handleSendCode()}
               >
-                Gửi lại mã
+                {a.resendCode}
               </button>
             </div>
           </div>
@@ -300,7 +304,7 @@ function SignInModal({
         <div className="my-5 flex items-center gap-3">
           <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
           <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            Hoặc
+            {a.orDivider}
           </span>
           <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
         </div>
@@ -329,21 +333,20 @@ function SignInModal({
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Tiếp tục với Google
+          {a.continueGoogle}
         </button>
 
         {supabaseConfigured ? (
           <p className="mt-4 text-[10px] leading-relaxed text-slate-400 dark:text-slate-500">
-            Cấu hình Supabase: Email template dạng OTP 6 số và bật Google
-            OAuth với Redirect URL khớp origin ứng dụng.
+            {a.supabaseOtpHint}
           </p>
         ) : (
           <p className="mt-4 text-[10px] leading-relaxed text-slate-400 dark:text-slate-500">
-            Thêm biến Supabase vào{" "}
+            {a.envHintBefore}{" "}
             <code className="rounded bg-slate-100 px-1 py-px dark:bg-slate-800">
               .env.local
             </code>{" "}
-            để đăng nhập.
+            {a.envHintAfter}
           </p>
         )}
       </div>
@@ -370,6 +373,8 @@ export function AuthToolbar({
     authErrorBanner,
     clearAuthErrorBanner,
   } = useAuth();
+  const { labels } = useInvoice();
+  const a = labels.auth;
 
   const [signInOpenInternal, setSignInOpenInternal] = useState(false);
   const signInOpen = signInOpenProp ?? signInOpenInternal;
@@ -385,7 +390,11 @@ export function AuthToolbar({
   if (!session) {
     return (
       <>
-        <SignInModal open={signInOpen} onClose={() => setSignInOpen(false)} />
+        <SignInModal
+          open={signInOpen}
+          onClose={() => setSignInOpen(false)}
+          auth={a}
+        />
 
         {!isHeaderLayout && authErrorBanner && !signInOpen ? (
           <div
@@ -398,7 +407,7 @@ export function AuthToolbar({
               className="mt-2 text-[11px] font-semibold underline"
               onClick={clearAuthErrorBanner}
             >
-              Đóng
+              {a.dismissShort}
             </button>
           </div>
         ) : null}
@@ -409,12 +418,12 @@ export function AuthToolbar({
           className={toolbarPrimaryClass}
         >
           <User className="h-4 w-4" aria-hidden />
-          Đăng nhập
+          {a.signIn}
         </button>
 
         {!isHeaderLayout && !supabaseConfigured ? (
           <p className="max-w-[220px] text-right text-[10px] leading-snug text-slate-500 dark:text-slate-400">
-            Cần khóa Supabase trong .env.local để đăng nhập cục bộ.
+            {a.needSupabaseKeys}
           </p>
         ) : null}
       </>
@@ -424,7 +433,7 @@ export function AuthToolbar({
   const label =
     session.displayName?.trim() ||
     session.email?.trim() ||
-    "Đã đăng nhập";
+    a.signedInFallback;
 
   const initials = initialsFromSession(session.email, session.displayName);
 
@@ -457,7 +466,7 @@ export function AuthToolbar({
           type="button"
           onClick={() => void signOut()}
           className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-white dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-          aria-label="Đăng xuất"
+          aria-label={a.signOut}
         >
           <LogOut className="h-4 w-4" aria-hidden />
         </button>
@@ -499,7 +508,7 @@ export function AuthToolbar({
         className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-800 shadow-sm transition-colors hover:bg-white dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
       >
         <LogOut className="h-4 w-4" aria-hidden />
-        Đăng xuất
+        {a.signOut}
       </button>
     </div>
   );
