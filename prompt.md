@@ -69,3 +69,17 @@ Nâng cấp `@/context/InvoiceContext.tsx` để liên kết trực tiếp với
 - **Tối ưu trải nghiệm (Optimistic UI):** Khi bấm lưu, lập tức hiển thị trạng thái "Saving..." hoặc Toast thông báo thành công ở client trước để tạo cảm giác không có độ trễ, việc ghi vào DB sẽ chạy ngầm bên dưới.
 
 ===========================
+DIRECTIVE: Hoàn thiện cấu hình hệ thống Migrations cho dự án SnapBill bằng Supabase CLI theo đúng @SnapBill_Specification.md.
+
+Hãy tạo file migration create_invoices_table.sql trong đường dẫn `supabase/migrations/` và thực hiện các bước sau (viết code đầy đủ, không dùng mã giả):
+
+1. Điền toàn bộ cấu trúc schema SQL của bảng `invoices` vào file migration đó, bao gồm:
+   - Tạo bảng `public.invoices` với các trường dữ liệu chuẩn spec (các trường metadata, totals, notes và đặc biệt là các trường JSONB: `sender_data`, `client_data`, `items`).
+   - Kích hoạt Row Level Security (RLS) cho bảng này.
+   - Tạo đầy đủ 4 chính sách bảo mật (Policies) để cô lập dữ liệu: Cho phép người dùng authenticated chỉ được phép SELECT, INSERT, UPDATE, DELETE các bản ghi thỏa mãn điều kiện `auth.uid() = user_id`.
+
+2. Kiểm tra và cập nhật file `.env.example` để bổ sung các biến cấu hình cần thiết nếu có khi chạy DB Migration.
+
+3. Sau khi viết xong file SQL, hãy tóm tắt lại cấu trúc file và cung cấp duy nhất 1 lệnh CLI chính xác để tôi chạy trên Terminal nhằm đẩy (push) toàn bộ file migration này lên database Supabase Production.
+
+======================

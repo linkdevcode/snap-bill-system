@@ -45,17 +45,114 @@ export interface AuthContextValue {
   user: User | null;
   loading: boolean;
   supabaseConfigured: boolean;
+  authErrorBanner: string | null;
+  clearAuthErrorBanner: () => void;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+function readOAuthReturnErrorFromUrl(): {
+  message: string | null;
+  rawCode: string | null;
+  rawError: string | null;
+} {
+  if (typeof window === "undefined") {
+    return { message: null, rawCode: null, rawError: null };
+  }
+
+  const url = new URL(window.location.href);
+  const params = url.searchParams;
+  const rawError = params.get("error");
+  const rawCode = params.get("error_code");
+  const rawDesc = params.get("error_description");
+  const decodedDesc = rawDesc
+    ? decodeURIComponent(rawDesc.replace(/\+/g, " "))
+    : "";
+
+  if (!rawError && !rawCode && !decodedDesc) {
+    return { message: null, rawCode, rawError };
+  }
+
+  const haystack = `${rawCode ?? ""} ${decodedDesc}`.toLowerCase();
+
+  if (
+    rawCode === "validation_failed" ||
+    haystack.includes("provider is not enabled") ||
+    haystack.includes("unsupported provider")
+  ) {
+    return {
+      message:
+        "Google OAuth chưa được bật trong Supabase (Dashboard → Authentication → Providers → Google).",
+      rawCode,
+      rawError,
+    };
+  }
+
+  if (decodedDesc.length > 0) {
+    return { message: decodedDesc, rawCode, rawError };
+  }
+
+  if (rawError && rawError.length > 0) {
+    return { message: rawError, rawCode, rawError };
+  }
+
+  return { message: "Đăng nhập OAuth thất bại.", rawCode, rawError };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const supabaseConfigured = useMemo(() => isSupabaseConfigured(), []);
 
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authErrorBanner, setAuthErrorBanner] = useState<string | null>(null);
+
+  const clearAuthErrorBanner = useCallback(() => {
+    setAuthErrorBanner(null);
+  }, []);
+
+  useEffect(() => {
+    const parsed = readOAuthReturnErrorFromUrl();
+    if (!parsed.message) {
+      return;
+    }
+
+    // #region agent log
+    fetch(
+      "http://127.0.0.1:7705/ingest/505b2940-41b3-4650-8f34-74f787984c83",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "b76a0f",
+        },
+        body: JSON.stringify({
+          sessionId: "b76a0f",
+          hypothesisId: "H1-url-callback",
+          location: "AuthContext.tsx:oauthReturnParse",
+          message: "OAuth redirect carried error params",
+          data: {
+            rawCode: parsed.rawCode,
+            rawError: parsed.rawError,
+            mappedUnsupportedProviderHint:
+              parsed.message.includes("Google OAuth"),
+          },
+          timestamp: Date.now(),
+          runId: "post-fix",
+        }),
+      },
+    ).catch(() => {});
+    // #endregion
+
+    setAuthErrorBanner(parsed.message);
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("error");
+    url.searchParams.delete("error_code");
+    url.searchParams.delete("error_description");
+    window.history.replaceState({}, "", `${url.pathname}${url.hash}`);
+  }, []);
 
   useEffect(() => {
     const client = getSupabaseBrowserClient();
@@ -99,16 +196,130 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    clearAuthErrorBanner();
+
     const redirectTo =
       typeof window !== "undefined"
         ? `${window.location.origin}${window.location.pathname}`
         : undefined;
 
-    await client.auth.signInWithOAuth({
-      provider: "google",
+    let supabaseHost = "";
+    try {
+      const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      if (rawUrl) {
+        supabaseHost = new URL(rawUrl).host;
+      }
+    } catch {
+      supabaseHost = "invalid_url";
+    }
+
+    const oauthProvider = "google" as const;
+
+    // #region agent log
+    fetch(
+      "http://127.0.0.1:7705/ingest/505b2940-41b3-4650-8f34-74f787984c83",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "b76a0f",
+        },
+        body: JSON.stringify({
+          sessionId: "b76a0f",
+          hypothesisId: "H2-H3-H4",
+          location: "AuthContext.tsx:signInWithGoogle",
+          message: "OAuth attempt start",
+          data: {
+            provider: oauthProvider,
+            redirectToPattern: redirectTo ? "origin+pathname" : "none",
+            path:
+              typeof window !== "undefined" ? window.location.pathname : "",
+            supabaseHost,
+          },
+          timestamp: Date.now(),
+          runId: "pre-fix",
+        }),
+      },
+    ).catch(() => {});
+    // #endregion
+
+    const { data, error } = await client.auth.signInWithOAuth({
+      provider: oauthProvider,
       options: redirectTo ? { redirectTo } : undefined,
     });
-  }, []);
+
+    // #region agent log
+    fetch(
+      "http://127.0.0.1:7705/ingest/505b2940-41b3-4650-8f34-74f787984c83",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "b76a0f",
+        },
+        body: JSON.stringify({
+          sessionId: "b76a0f",
+          hypothesisId: "H1-H4",
+          location: "AuthContext.tsx:signInWithGoogle",
+          message: "OAuth attempt result",
+          data: {
+            hasAuthUrl: typeof data?.url === "string" && data.url.length > 0,
+            errorMessage: error?.message ?? null,
+            errorName: error?.name ?? null,
+            errorStatus:
+              typeof error === "object" &&
+              error !== null &&
+              "status" in error &&
+              typeof (error as { status?: unknown }).status === "number"
+                ? (error as { status: number }).status
+                : null,
+          },
+          timestamp: Date.now(),
+          runId: "post-fix-verify",
+        }),
+      },
+    ).catch(() => {});
+    // #endregion
+
+    if (error) {
+      console.warn("[SnapBill] signInWithOAuth error:", error.message);
+      setAuthErrorBanner(error.message);
+      return;
+    }
+
+    const authorizeUrlHost = (() => {
+      try {
+        return data?.url ? new URL(data.url).host : "";
+      } catch {
+        return "";
+      }
+    })();
+
+    // #region agent log
+    fetch(
+      "http://127.0.0.1:7705/ingest/505b2940-41b3-4650-8f34-74f787984c83",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "b76a0f",
+        },
+        body: JSON.stringify({
+          sessionId: "b76a0f",
+          hypothesisId: "H1-hint",
+          location: "AuthContext.tsx:signInWithGoogle",
+          message: "OAuth URL issued; user will navigate to authorize host",
+          data: {
+            authorizeUrlHost,
+            sameProjectAsClient: authorizeUrlHost === supabaseHost,
+          },
+          timestamp: Date.now(),
+          runId: "post-fix-verify",
+        }),
+      },
+    ).catch(() => {});
+    // #endregion
+  }, [clearAuthErrorBanner]);
 
   const signOut = useCallback(async () => {
     const client = getSupabaseBrowserClient();
@@ -125,10 +336,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       loading,
       supabaseConfigured,
+      authErrorBanner,
+      clearAuthErrorBanner,
       signInWithGoogle,
       signOut,
     }),
     [
+      authErrorBanner,
+      clearAuthErrorBanner,
       loading,
       session,
       signInWithGoogle,

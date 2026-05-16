@@ -29,8 +29,15 @@ function initialsFromSession(
 }
 
 export function AuthToolbar() {
-  const { session, loading, signInWithGoogle, signOut, supabaseConfigured } =
-    useAuth();
+  const {
+    session,
+    loading,
+    signInWithGoogle,
+    signOut,
+    supabaseConfigured,
+    authErrorBanner,
+    clearAuthErrorBanner,
+  } = useAuth();
 
   if (loading) {
     return (
@@ -43,6 +50,22 @@ export function AuthToolbar() {
   if (!session) {
     return (
       <div className="flex flex-col items-end gap-2">
+        {authErrorBanner ? (
+          <div
+            role="alert"
+            className="max-w-[min(100vw-2rem,320px)] rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-right text-[11px] leading-snug text-red-900 dark:border-red-500/40 dark:bg-red-900/30 dark:text-red-50"
+          >
+            <p>{authErrorBanner}</p>
+            <button
+              type="button"
+              className="mt-2 text-[11px] font-semibold underline"
+              onClick={clearAuthErrorBanner}
+            >
+              Đóng
+            </button>
+          </div>
+        ) : null}
+
         <button
           type="button"
           onClick={() => void signInWithGoogle()}
@@ -52,6 +75,16 @@ export function AuthToolbar() {
           <LogIn className="h-4 w-4" aria-hidden />
           Sign In
         </button>
+
+        {supabaseConfigured ? (
+          <p className="max-w-[260px] text-right text-[10px] leading-snug text-tech-slate-500 dark:text-warm-cream-400">
+            Nếu Supabase báo &quot;Unsupported provider&quot;: Dashboard →
+            Authentication → Providers → Google — bật provider, nhập Client ID /
+            Secret, và thêm Redirect URL khớp địa chỉ app (localhost và/hoặc
+            production).
+          </p>
+        ) : null}
+
         {!supabaseConfigured ? (
           <p className="max-w-[220px] text-right text-[10px] leading-snug text-tech-slate-500 dark:text-warm-cream-400">
             Add Supabase keys to enable Sign In locally.
