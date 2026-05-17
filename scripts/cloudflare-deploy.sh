@@ -9,8 +9,8 @@ WORKER=".open-next/worker.js"
 
 if [[ ! -f "$COMPILED_CONFIG" || ! -f "$WORKER" ]]; then
   echo "[cloudflare-deploy] Missing .open-next output — running cf-build..."
-  npm run cf-build
+  npm run build:cloudflare
 fi
 
 echo "[cloudflare-deploy] Deploying to Cloudflare..."
-npm run cf-deploy
+npx opennextjs-cloudflare deploy

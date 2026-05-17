@@ -2,7 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "snap-bill",
   "build": {
-    "command": "npm run cf-build"
+    "command": "npm run build:cloudflare"
   },
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-05-16",
