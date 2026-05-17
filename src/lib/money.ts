@@ -17,7 +17,7 @@ export function lineTotalFromItem(quantity: number, unitPrice: number): number {
 /**
  * Formats a monetary amount for display on invoices and dashboards.
  * VND: Vietnamese grouping with "đ" suffix (no decimals).
- * JPY: yen with no decimal places.
+ * JPY/KRW: no decimal places.
  * CNY/USD/EUR/GBP: standard Intl currency with locale-appropriate symbol.
  */
 export function formatMoney(
@@ -34,10 +34,10 @@ export function formatMoney(
     return `${formatted} đ`;
   }
 
-  if (currency === "JPY") {
-    return new Intl.NumberFormat(CURRENCY_FORMAT_LOCALE.JPY, {
+  if (currency === "JPY" || currency === "KRW") {
+    return new Intl.NumberFormat(CURRENCY_FORMAT_LOCALE[currency], {
       style: "currency",
-      currency: "JPY",
+      currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(Math.round(value));
