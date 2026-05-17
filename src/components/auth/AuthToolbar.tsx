@@ -5,6 +5,10 @@ import { KeyRound, LogOut, User, X } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
 import { useInvoice } from "@/context/InvoiceContext";
+import {
+  EMAIL_OTP_LENGTH,
+  normalizeEmailOtpDigits,
+} from "@/lib/auth-otp";
 import { formatAuthOtpHint } from "@/utils/translations";
 
 const modalLabelClass =
@@ -146,8 +150,7 @@ function SignInModal({
   }, [signInWithGoogle, supabaseConfigured]);
 
   const onOtpChange = useCallback((raw: string) => {
-    const digits = raw.replace(/\D/g, "").slice(0, 6);
-    setOtp(digits);
+    setOtp(normalizeEmailOtpDigits(raw));
   }, []);
 
   if (!open) {
@@ -261,8 +264,8 @@ function SignInModal({
                     void handleVerify();
                   }
                 }}
-                placeholder="••••••"
-                maxLength={6}
+                placeholder={"•".repeat(EMAIL_OTP_LENGTH)}
+                maxLength={EMAIL_OTP_LENGTH}
                 className={`${modalInputClass} text-center font-mono text-lg tracking-[0.35em]`}
               />
             </label>

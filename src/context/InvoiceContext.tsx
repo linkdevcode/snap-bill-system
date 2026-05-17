@@ -169,12 +169,14 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
     () => createDefaultInvoice(),
   );
 
-  const [language, setLanguageState] = useState<InvoiceLanguage>(() =>
-    readStoredInterfaceLanguage(),
-  );
-  const [currency, setCurrencyState] = useState<InvoiceCurrency>(() =>
-    readStoredInterfaceCurrency(),
-  );
+  // Defaults must match server render; localStorage is applied after mount (see useEffect).
+  const [language, setLanguageState] = useState<InvoiceLanguage>("vi");
+  const [currency, setCurrencyState] = useState<InvoiceCurrency>("VND");
+
+  useEffect(() => {
+    setLanguageState(readStoredInterfaceLanguage());
+    setCurrencyState(readStoredInterfaceCurrency());
+  }, []);
 
   const setLanguage = useCallback((next: InvoiceLanguage) => {
     setLanguageState(next);

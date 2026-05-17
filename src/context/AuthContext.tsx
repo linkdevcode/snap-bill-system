@@ -16,6 +16,10 @@ import {
   getSupabaseBrowserClient,
   isSupabaseConfigured,
 } from "@/utils/supabase/client";
+import {
+  isValidEmailOtpLength,
+  normalizeEmailOtpDigits,
+} from "@/lib/auth-otp";
 import { getAppLabels, readStoredInterfaceLanguage } from "@/utils/translations";
 
 function mapUserToSession(user: User): UserSession {
@@ -48,7 +52,7 @@ export interface AuthContextValue {
   supabaseConfigured: boolean;
   authErrorBanner: string | null;
   clearAuthErrorBanner: () => void;
-  /** Gửi mã OTP 6 số tới email (Supabase Auth). */
+  /** Gửi mã OTP email tới người dùng (Supabase Auth). */
   sendEmailOtp: (email: string) => Promise<boolean>;
   /** Xác nhận OTP email và thiết lập phiên đăng nhập. */
   verifyEmailOtp: (email: string, token: string) => Promise<boolean>;
@@ -203,14 +207,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (email: string, token: string) => {
       const authLabels = getAppLabels(readStoredInterfaceLanguage()).auth;
       const trimmedEmail = email.trim();
-      const digits = token.replace(/\D/g, "");
+      const digits = normalizeEmailOtpDigits(token);
 
       if (!trimmedEmail) {
         setAuthErrorBanner(authLabels.errors.emailMissingForOtp);
         return false;
       }
 
-      if (digits.length !== 6) {
+      if (!isValidEmailOtpLength(digits)) {
         setAuthErrorBanner(authLabels.errors.otpInvalid);
         return false;
       }

@@ -1,4 +1,7 @@
-import type { InvoiceCurrency } from "@/types/locale";
+import {
+  CURRENCY_FORMAT_LOCALE,
+  type InvoiceCurrency,
+} from "@/types/locale";
 
 export function roundCurrency(value: number): number {
   if (!Number.isFinite(value)) {
@@ -11,16 +14,10 @@ export function lineTotalFromItem(quantity: number, unitPrice: number): number {
   return roundCurrency(quantity * unitPrice);
 }
 
-const CURRENCY_LOCALE: Record<Exclude<InvoiceCurrency, "VND">, string> = {
-  USD: "en-US",
-  EUR: "de-DE",
-  GBP: "en-GB",
-};
-
 /**
  * Formats a monetary amount for display on invoices and dashboards.
  * VND: Vietnamese grouping with "đ" suffix (no decimals).
- * USD/EUR/GBP: standard Intl currency with symbol prefix.
+ * CNY/USD/EUR/GBP: standard Intl currency with locale-appropriate symbol.
  */
 export function formatMoney(
   amount: number,
@@ -29,14 +26,14 @@ export function formatMoney(
   const value = roundCurrency(amount);
 
   if (currency === "VND") {
-    const formatted = new Intl.NumberFormat("vi-VN", {
+    const formatted = new Intl.NumberFormat(CURRENCY_FORMAT_LOCALE.VND, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(Math.round(value));
     return `${formatted} đ`;
   }
 
-  const locale = CURRENCY_LOCALE[currency];
+  const locale = CURRENCY_FORMAT_LOCALE[currency];
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,

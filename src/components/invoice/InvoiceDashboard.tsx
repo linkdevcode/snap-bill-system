@@ -13,6 +13,10 @@ import {
 } from "@/lib/invoice-db";
 import { formatMoney } from "@/lib/money";
 import type { InvoiceStatus } from "@/types/invoice";
+import {
+  LANGUAGE_DATE_LOCALE,
+  type InvoiceLanguage,
+} from "@/types/locale";
 import { statusLabel } from "@/utils/translations";
 import { getSupabaseBrowserClient } from "@/utils/supabase/client";
 
@@ -21,7 +25,7 @@ function StatusBadge({
   language,
 }: {
   status: InvoiceStatus;
-  language: "vi" | "en";
+  language: InvoiceLanguage;
 }) {
   const styles: Record<InvoiceStatus, string> = {
     draft:
@@ -41,12 +45,12 @@ function StatusBadge({
   );
 }
 
-function formatCreatedAt(iso: string, language: "vi" | "en"): string {
+function formatCreatedAt(iso: string, language: InvoiceLanguage): string {
   const t = Date.parse(iso);
   if (!Number.isFinite(t)) {
     return "—";
   }
-  const locale = language === "vi" ? "vi-VN" : "en-US";
+  const locale = LANGUAGE_DATE_LOCALE[language];
   return new Intl.DateTimeFormat(locale, {
     year: "numeric",
     month: "short",
