@@ -8,12 +8,15 @@
   "scripts": {
     "sync-deploy-repo": "bash scripts/sync-deploy-repo.sh",
     "dev": "next dev",
-    "build": "next build",
+    "build": "opennextjs-cloudflare build",
+    "build:next": "next build",
     "start": "next start",
     "lint": "next lint",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "cf-build": "opennextjs-cloudflare build",
+    "cf-deploy": "opennextjs-cloudflare deploy",
+    "cloudflare:deploy": "bash scripts/cloudflare-deploy.sh",
     "supabase:push": "npx --yes supabase@latest db push --linked"
   },
   "dependencies": {
