@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import { AuthToolbar } from "@/components/auth/AuthToolbar";
 import { AdSlot, isAdSlotConfigured } from "@/components/invoice/AdSlot";
@@ -30,13 +31,17 @@ function navLinkClass(active: boolean): string {
 export function SiteHeader({
   workspaceView = "editor",
   onWorkspaceViewChange,
-  signInOpen = false,
-  onSignInOpenChange,
+  signInOpen: signInOpenProp,
+  onSignInOpenChange: onSignInOpenChangeProp,
 }: SiteHeaderProps) {
   const pathname = usePathname();
   const { session, loading } = useAuth();
   const { labels } = useInvoice();
   const topSlotId = process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP ?? "";
+
+  const [signInOpenInternal, setSignInOpenInternal] = useState(false);
+  const signInOpen = signInOpenProp ?? signInOpenInternal;
+  const onSignInOpenChange = onSignInOpenChangeProp ?? setSignInOpenInternal;
 
   const isDocs = pathname === "/docs";
   const isHome = pathname === "/";
@@ -53,7 +58,7 @@ export function SiteHeader({
 
   const handleInvoicesNav = () => {
     if (!session && !loading) {
-      onSignInOpenChange?.(true);
+      onSignInOpenChange(true);
       return;
     }
     if (isHome && onWorkspaceViewChange) {
