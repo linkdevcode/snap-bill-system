@@ -321,6 +321,15 @@ function injectScopedPdfExportStyles(doc: Document, rootSelector: string): void 
     }
     ${rootSelector} .snapbill-line-items-mobile { display: none !important; }
     ${rootSelector} .snapbill-line-items-desktop { display: block !important; }
+    ${rootSelector} .snapbill-line-items-table {
+      width: 100% !important;
+      table-layout: fixed !important;
+      border-collapse: collapse !important;
+    }
+    ${rootSelector} .snapbill-line-items-table col.snapbill-line-col-desc { width: 44% !important; }
+    ${rootSelector} .snapbill-line-items-table col.snapbill-line-col-qty { width: 12% !important; }
+    ${rootSelector} .snapbill-line-items-table col.snapbill-line-col-unit { width: 22% !important; }
+    ${rootSelector} .snapbill-line-items-table col.snapbill-line-col-total { width: 22% !important; }
     ${rootSelector} .snapbill-meta-status-cell {
       display: block !important;
     }

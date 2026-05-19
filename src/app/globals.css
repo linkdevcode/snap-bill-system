@@ -10,6 +10,75 @@ body {
   @apply min-h-screen bg-warm-cream-50 text-tech-slate-900 antialiased dark:bg-tech-slate-950 dark:text-warm-cream-100;
 }
 
+/* ─── Invoice preview: line items theo chiều rộng khối hóa đơn (sidebar hẹp vẫn dùng card) ─── */
+.snapbill-invoice-paper {
+  container-type: inline-size;
+  container-name: snapbill-invoice;
+}
+
+.snapbill-line-items-mobile {
+  display: block;
+}
+
+.snapbill-line-items-desktop {
+  display: none;
+}
+
+.snapbill-line-items-table col.snapbill-line-col-desc {
+  width: 44%;
+}
+
+.snapbill-line-items-table col.snapbill-line-col-qty {
+  width: 12%;
+}
+
+.snapbill-line-items-table col.snapbill-line-col-unit {
+  width: 22%;
+}
+
+.snapbill-line-items-table col.snapbill-line-col-total {
+  width: 22%;
+}
+
+@container snapbill-invoice (min-width: 420px) {
+  .snapbill-line-items-mobile {
+    display: none;
+  }
+
+  .snapbill-line-items-desktop {
+    display: block;
+  }
+}
+
+@container snapbill-invoice (max-width: 419px) {
+  .snapbill-from-to-row {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .snapbill-from-to-col {
+    max-width: 100%;
+    flex: none;
+    text-align: left;
+  }
+
+  .snapbill-from-to-col--to {
+    text-align: left;
+  }
+}
+
+@supports not (container-type: inline-size) {
+  @media (min-width: 480px) {
+    .snapbill-line-items-mobile {
+      display: none;
+    }
+
+    .snapbill-line-items-desktop {
+      display: block;
+    }
+  }
+}
+
 /* ─── Print: chỉ in #invoice-paper, 1 trang A4, không chrome app ─── */
 @media print {
   @page {

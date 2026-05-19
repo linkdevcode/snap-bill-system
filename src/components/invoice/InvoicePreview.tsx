@@ -3,8 +3,8 @@
 import { Building2 } from "lucide-react";
 
 import { InvoicePreviewActions } from "@/components/invoice/InvoicePreviewActions";
+import { InvoicePreviewLineItems } from "@/components/invoice/InvoicePreviewLineItems";
 import { useInvoice } from "@/context/InvoiceContext";
-import { lineTotalFromItem } from "@/lib/money";
 import { formatInvoiceDate, statusLabel } from "@/utils/translations";
 
 const metaLabelClass =
@@ -39,7 +39,7 @@ export function InvoicePreview() {
       <div className="snapbill-print-area flex justify-center overflow-x-auto print:overflow-visible">
         <section
           id="invoice-paper"
-          className="relative box-border w-full max-w-[595px] shrink-0 bg-white p-10 text-slate-900 shadow-[0_1px_3px_rgba(15,23,42,0.12)] ring-1 ring-black/5 min-h-0 print:min-h-0 print:h-auto print:max-h-none print:border-0 print:shadow-none print:ring-0"
+          className="snapbill-invoice-paper relative box-border w-full max-w-[595px] shrink-0 bg-white p-4 text-slate-900 shadow-[0_1px_3px_rgba(15,23,42,0.12)] ring-1 ring-black/5 min-h-0 sm:p-6 md:p-8 lg:p-10 print:min-h-0 print:h-auto print:max-h-none print:border-0 print:p-0 print:shadow-none print:ring-0"
           aria-label={labels.previewChrome.previewAria}
           lang={language}
         >
@@ -103,8 +103,8 @@ export function InvoicePreview() {
           </header>
 
           {/* FROM / TO row */}
-          <section className="snapbill-print-avoid-break my-6 flex items-start justify-between gap-8 border-b border-slate-100 py-6 print:my-4 print:py-4">
-            <div className="min-w-0 max-w-[48%] flex-1">
+          <section className="snapbill-from-to-row snapbill-print-avoid-break my-6 flex items-start justify-between gap-8 border-b border-slate-100 py-6 print:my-4 print:py-4">
+            <div className="snapbill-from-to-col min-w-0 max-w-[48%] flex-1">
               <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 {preview.from}
               </p>
@@ -131,7 +131,7 @@ export function InvoicePreview() {
               </div>
             </div>
 
-            <div className="min-w-0 max-w-[48%] flex-1 text-right">
+            <div className="snapbill-from-to-col snapbill-from-to-col--to min-w-0 max-w-[48%] flex-1 text-right">
               <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 {preview.to}
               </p>
@@ -149,96 +149,11 @@ export function InvoicePreview() {
             </div>
           </section>
 
-          {/* Line items — mobile */}
-          <ul className="snapbill-line-items-mobile space-y-2 md:hidden print:hidden">
-            {invoice.items.map((item) => {
-              const lineTotal = lineTotalFromItem(
-                item.quantity,
-                item.unit_price,
-              );
-              const label =
-                item.description.trim() || preview.defaultLineItem;
-              return (
-                <li
-                  key={item.id}
-                  className="snapbill-avoid-break list-none rounded-lg border border-slate-100 bg-slate-50/60 p-3"
-                >
-                  <p className="font-medium leading-snug text-slate-900">
-                    {label}
-                  </p>
-                  <dl className="mt-2 grid grid-cols-3 gap-2 text-xs">
-                    <div>
-                      <dt className="font-bold uppercase tracking-wider text-slate-400">
-                        {preview.qty}
-                      </dt>
-                      <dd className="mt-0.5 tabular-nums text-slate-800">
-                        {item.quantity}
-                      </dd>
-                    </div>
-                    <div className="text-right">
-                      <dt className="font-bold uppercase tracking-wider text-slate-400">
-                        {preview.unit}
-                      </dt>
-                      <dd className="mt-0.5 tabular-nums text-slate-800">
-                        {formatInvoiceMoney(item.unit_price)}
-                      </dd>
-                    </div>
-                    <div className="text-right">
-                      <dt className="font-bold uppercase tracking-wider text-slate-400">
-                        {preview.lineTotal}
-                      </dt>
-                      <dd className="mt-0.5 tabular-nums font-semibold text-slate-900">
-                        {formatInvoiceMoney(lineTotal)}
-                      </dd>
-                    </div>
-                  </dl>
-                </li>
-              );
-            })}
-          </ul>
-
-          {/* Line items — desktop */}
-          <div className="snapbill-line-items-desktop snapbill-print-avoid-break hidden overflow-x-auto md:block print:block">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 text-left text-xs font-bold uppercase tracking-wide text-slate-500">
-                  <th className="py-2.5 pr-4">{preview.description}</th>
-                  <th className="py-2.5 pr-4 text-right">{preview.qty}</th>
-                  <th className="py-2.5 pr-4 text-right">{preview.unit}</th>
-                  <th className="py-2.5 text-right">{preview.lineTotal}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoice.items.map((item) => {
-                  const lineTotal = lineTotalFromItem(
-                    item.quantity,
-                    item.unit_price,
-                  );
-                  const label =
-                    item.description.trim() || preview.defaultLineItem;
-                  return (
-                    <tr
-                      key={item.id}
-                      className="snapbill-avoid-break align-top text-slate-800"
-                    >
-                      <td className="py-3 pr-4 font-medium text-slate-900">
-                        {label}
-                      </td>
-                      <td className="py-3 pr-4 text-right tabular-nums">
-                        {item.quantity}
-                      </td>
-                      <td className="py-3 pr-4 text-right tabular-nums">
-                        {formatInvoiceMoney(item.unit_price)}
-                      </td>
-                      <td className="py-3 text-right tabular-nums font-semibold text-slate-900">
-                        {formatInvoiceMoney(lineTotal)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <InvoicePreviewLineItems
+            items={invoice.items}
+            preview={preview}
+            formatInvoiceMoney={formatInvoiceMoney}
+          />
 
           {/* Totals */}
           <div className="snapbill-invoice-totals snapbill-print-avoid-break mt-6 ml-auto w-full max-w-xs space-y-2 pt-2 text-right text-sm print:mt-4">

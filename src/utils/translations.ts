@@ -23,6 +23,7 @@ export interface InvoicePreviewLabels {
   description: string;
   qty: string;
   unit: string;
+  qtyTimesUnit: string;
   lineTotal: string;
   subtotal: string;
   tax: string;
@@ -206,6 +207,7 @@ const LABELS: Record<InvoiceLanguage, AppLabels> = {
       description: "Mô tả",
       qty: "SL",
       unit: "Đơn giá",
+      qtyTimesUnit: "SL × Đơn giá",
       lineTotal: "Thành tiền",
       subtotal: "Tạm tính",
       tax: "Thuế",
@@ -419,6 +421,7 @@ const LABELS: Record<InvoiceLanguage, AppLabels> = {
       description: "Description",
       qty: "Qty",
       unit: "Unit",
+      qtyTimesUnit: "Qty × Unit price",
       lineTotal: "Total",
       subtotal: "Subtotal",
       tax: "Tax",
@@ -630,6 +633,7 @@ const LABELS: Record<InvoiceLanguage, AppLabels> = {
       description: "描述",
       qty: "数量",
       unit: "单价",
+      qtyTimesUnit: "数量 × 单价",
       lineTotal: "金额",
       subtotal: "小计",
       tax: "税费",
@@ -832,6 +836,7 @@ const LABELS: Record<InvoiceLanguage, AppLabels> = {
       description: "内容",
       qty: "数量",
       unit: "単価",
+      qtyTimesUnit: "数量 × 単価",
       lineTotal: "金額",
       subtotal: "小計",
       tax: "税",
