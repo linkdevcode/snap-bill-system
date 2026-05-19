@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { AuthToolbar } from "@/components/auth/AuthToolbar";
-import { AdSlot } from "@/components/invoice/AdSlot";
+import { AdSlot, isAdSlotConfigured } from "@/components/invoice/AdSlot";
 import { AppBrand } from "@/components/layout/AppBrand";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useAuth } from "@/context/AuthContext";
@@ -109,9 +109,11 @@ export function SiteHeader({
         </div>
       </header>
 
-      <div className="mx-auto mt-4 max-w-[1400px] px-4 md:px-8">
-        <AdSlot slotId={topSlotId} layout="banner" />
-      </div>
+      {isAdSlotConfigured(topSlotId) ? (
+        <div className="mx-auto mt-4 max-w-[1400px] px-4 md:px-8">
+          <AdSlot slotId={topSlotId} layout="banner" />
+        </div>
+      ) : null}
     </div>
   );
 }

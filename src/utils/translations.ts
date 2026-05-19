@@ -1049,6 +1049,7 @@ const LABELS: Record<InvoiceLanguage, AppLabels> = {
       description: "설명",
       qty: "수량",
       unit: "단가",
+      qtyTimesUnit: "수량 × 단가",
       lineTotal: "금액",
       subtotal: "소계",
       tax: "세금",

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BookOpen, FileText, Shield } from "lucide-react";
 
 import { InvoiceLocaleSelectors } from "@/components/invoice/InvoiceLocaleSelectors";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useInvoice } from "@/context/InvoiceContext";
 
@@ -13,10 +14,10 @@ export default function DocsPage() {
   const downloadPdf = labels.previewChrome.downloadPdf;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
       <SiteHeader />
 
-      <main className="mx-auto max-w-[1400px] px-4 pb-16 md:px-8">
+      <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 pb-8 md:px-8">
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:p-8">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-3">
@@ -90,6 +91,7 @@ export default function DocsPage() {
           </p>
         </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }
